@@ -1,0 +1,15 @@
+*~
+.snakemake
+testdata/benchmarks
+testdata/logs
+testdata/Snakefile
+testdata/samp1/read_chunks
+*.xg
+*.vg
+*.gcsa*
+*.min
+*.dist
+*.snarls
+*.gam
+*.ids.mapping
+*.gg
