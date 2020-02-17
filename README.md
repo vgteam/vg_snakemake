@@ -1,9 +1,11 @@
-This repository contains a [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html) workflow for the vg toolkit.
+This repository contains a [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html) workflow for the [vg toolkit](https://github.com/vgteam/vg).
 In the current stage it's simply a place to host a usable `Snakefile` and `config.yaml` files.
 With it, you can build a variation graph from a reference FASTA file and variants in a VCF file, map reads to the graph and genotype those variants.
 
 For now, this workflow has been used locally or on a large AWS/Kubernetes instance.
 We will soon test it on a HPC system and update the examples below.
+
+**This workflow was tested on [vg 1.21.0](https://github.com/vgteam/vg/releases/tag/v1.21.0).**
 
 - [Input files](#input-files)
 - [Examples](#examples)
