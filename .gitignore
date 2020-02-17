@@ -4,6 +4,7 @@ testdata/benchmarks
 testdata/logs
 testdata/Snakefile
 testdata/samp1/read_chunks
+*.fai
 *.xg
 *.vg
 *.gcsa*

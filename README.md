@@ -1,9 +1,15 @@
-This repository contains a Snakemake workflow for the vg toolkit.
+This repository contains a [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html) workflow for the vg toolkit.
 In the current stage it's simply a place to host a usable `Snakefile` and `config.yaml` files.
 With it, you can build a variation graph from a reference FASTA file and variants in a VCF file, map reads to the graph and genotype those variants.
 
 For now, this workflow has been used locally or on a large AWS/Kubernetes instance.
 We will soon test it on a HPC system and update the examples below.
+
+- [Input files](#input-files)
+- [Examples](#examples)
+- [Overview of the workflow](#overview-of-the-workflow)
+- [Overview of the workflow when using the Giraffe mapper](#overview-of-the-workflow-when-using-the-giraffe-mapper)
+- [FAQ](#faq)
 
 ## Input files
 
@@ -28,7 +34,12 @@ The sample names shouldn't contain the character `-`.
 
 ## Examples
 
-See an example with a small test data in the [`testdata` folder](testdata/).
+The two rules used most in practice are:
+
+1. *construct_all* to build the graph and all the necessary indexes for mapping and variant calling.
+1. *genotype* to map reads and genotype samples.
+
+See an example on a small dataset in the [`testdata` folder](testdata/).
 
 ### Construct a variation graph
 
@@ -56,10 +67,10 @@ snakemake --configfile config.yaml --config samples="SAMP1 SAMP2" --resources me
 
 (Assuming that the *graph* label, e.g. *hg38-hgsvc*, is defined in the *config.yaml* file)
 
-## Simple overview of the workflow
+## Overview of the workflow
 
-We can easily visualize the workflow with snakemake.
-For a dummy example with two chromosomes and one sample (more info in the [`testdata` folder](testdata/)).
+We can easily visualize the workflow with [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html).
+Her we use the small test data with two chromosomes,  one sample, and reads split in 2 chunks (more info in the [`testdata` folder](testdata/)).
 
 ### Rule graph
 
@@ -73,9 +84,9 @@ For a dummy example with two chromosomes and one sample (more info in the [`test
 
 ![](imgs/construct-map-geno-filegraph.svg)
 
-## Overview of the workflow for giraffe, the faster mapper
+## Overview of the workflow when using the Giraffe mapper
 
-Same but with the newer mapper, giraffe.
+The newer and faster mapper, giraffe, uses different graph indexes.
 
 ### Rule graph
 
@@ -102,7 +113,7 @@ The current resources listed in `config.yaml` were tuned for a human genome.
 
 ### Where can I run this?
 
-You can run this on any resource supported by Snakemake. 
+You can run this on any resource supported by [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html). 
 For example, locally and on HPC.
 
 ### Can I use the workflow for non-human organisms?
