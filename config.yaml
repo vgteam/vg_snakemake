@@ -30,7 +30,7 @@ cores_map: 16
 cores_pack: 10
 cores_call: 16
 cores_augment: 8
-# mapper can be either 'map' or 'gaffe'
+# mapper can be either 'map', 'mpmap', or 'gaffe'
 mapper: 'map'
 # for minimizer/gaffe mapper
 mink: 39
