@@ -275,7 +275,26 @@ rule map:
         if config['s3save']:
             shell("aws s3 cp --quiet {output} {SROOT}/{output}")
 
-# map a chunk to the graph
+# map reads to the graph using mpmap in single-path mode
+rule map_mpmap:
+    input:
+        r1=read1_in,
+        r2=read2_in,
+        xg='{genome}-{svs}.xg',
+        gcsa='{genome}-{svs}.gcsa',
+        gcsalcp='{genome}-{svs}.gcsa.lcp'
+    output: map_out + '.mpmap.gam'
+    threads: config['cores_map']
+    resources:
+        mem_mb=config['mem_map']
+    benchmark: 'benchmarks/' + map_lab + '.{genome}.{svs}.mpmap.benchmark.txt'
+    log: 'logs/' + map_lab + '-{genome}-{svs}-mpmap.log.txt'
+    run:
+        shell("vg mpmap -S -t {threads} -x {input.xg} -g {input.gcsa} -f {input.r1} -f {input.r2} > {output} 2> {log}")
+        if config['s3save']:
+            shell("aws s3 cp --quiet {output} {SROOT}/{output}")
+
+# map reads to the graph using giraffe
 rule map_gaffe:
     input:
         r1=read1_in,
