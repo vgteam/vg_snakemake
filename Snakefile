@@ -310,7 +310,7 @@ rule map_gaffe:
     benchmark: 'benchmarks/' + map_lab + '.{genome}.{svs}.gaffe{k}k{w}w{n}N.benchmark.txt'
     log: 'logs/' + map_lab + '-{genome}-{svs}-gaffe{k}k{w}w{n}N.log.txt'
     run:
-        shell("vg gaffe -t {threads} -m {input.min} -d {input.dist} --gbwt-name {input.gbwt} -x {input.xg} -N {wildcards.sample} -f {input.r1} -f {input.r2} > {output} 2> {log}")
+        shell("vg gaffe -p -t {threads} -m {input.min} -d {input.dist} --gbwt-name {input.gbwt} -x {input.xg} -N {wildcards.sample} -f {input.r1} -f {input.r2} > {output} 2> {log}")
         if config['s3save']:
             shell("aws s3 cp --quiet {output} {SROOT}/{output}")
 
