@@ -16,8 +16,8 @@ GRAPH=config['graph']
 # parse config values
 SAMPLES=config['samples'].split()
 MAPPER=config['mapper']
-if MAPPER == 'gaffe':
-    MAPPER = 'gaffe{}k{}w{}N'.format(config['mink'], config['minw'], config['covern'])
+if MAPPER == 'giraffe':
+    MAPPER = 'giraffe{}k{}w{}N'.format(config['mink'], config['minw'], config['covern'])
 
 ##
 ## Main rules
@@ -28,7 +28,7 @@ rule construct_all:
     input: expand('{graph}.{ext}', graph=GRAPH, ext=['xg', 'snarls', 'gcsa'])
 
 # indexes used by the giraffe mapper and variant caller
-rule construct_all_gaffe:
+rule construct_all_giraffe:
     input:
         expand('{graph}.{ext}', graph=GRAPH, ext=['xg', 'snarls', 'dist']),
         expand('{graph}.k{k}.w{w}.N{n}.min', graph=GRAPH, k=config['mink'],
@@ -295,7 +295,7 @@ rule map_mpmap:
             shell("aws s3 cp --quiet {output} {SROOT}/{output}")
 
 # map reads to the graph using giraffe
-rule map_gaffe:
+rule map_giraffe:
     input:
         r1=read1_in,
         r2=read2_in,
@@ -303,14 +303,14 @@ rule map_gaffe:
         min='{genome}-{svs}.k{k}.w{w}.N{n}.min',
         dist='{genome}-{svs}.dist',
         gbwt='{genome}-{svs}.N{n}.gbwt'
-    output: map_out + '.gaffe{k}k{w}w{n}N.gam'
+    output: map_out + '.giraffe{k}k{w}w{n}N.gam'
     threads: config['cores_map']
     resources:
         mem_mb=config['mem_map']
-    benchmark: 'benchmarks/' + map_lab + '.{genome}.{svs}.gaffe{k}k{w}w{n}N.benchmark.txt'
-    log: 'logs/' + map_lab + '-{genome}-{svs}-gaffe{k}k{w}w{n}N.log.txt'
+    benchmark: 'benchmarks/' + map_lab + '.{genome}.{svs}.giraffe{k}k{w}w{n}N.benchmark.txt'
+    log: 'logs/' + map_lab + '-{genome}-{svs}-giraffe{k}k{w}w{n}N.log.txt'
     run:
-        shell("vg gaffe -p -t {threads} -m {input.min} -d {input.dist} --gbwt-name {input.gbwt} -x {input.xg} -N {wildcards.sample} -f {input.r1} -f {input.r2} > {output} 2> {log}")
+        shell("vg giraffe -p -t {threads} -m {input.min} -d {input.dist} --gbwt-name {input.gbwt} -x {input.xg} -N {wildcards.sample} -f {input.r1} -f {input.r2} > {output} 2> {log}")
         if config['s3save']:
             shell("aws s3 cp --quiet {output} {SROOT}/{output}")
 
