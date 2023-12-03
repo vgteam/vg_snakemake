@@ -6,6 +6,7 @@ rule pack:
     threads: 8
     benchmark: 'benchmark/results/vgcall/{sample}.{graph}.pack.benchmark.tsv'
     log: 'logs/pack.{graph}.{sample}.log'
+    container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell: "vg pack -x {input.gbz} -a {input.gaf} -Q 5 -t {threads} -o {output} 2> {log}"
 
 rule vgcall:
@@ -17,6 +18,7 @@ rule vgcall:
     output: 'results/vcf/{sample}.{graph}.gt.vcf.gz'
     threads: 8
     benchmark: 'benchmark/results/vcf/{sample}.{graph}.vgcall.benchmark.tsv'
+    container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
         RPATHS=""

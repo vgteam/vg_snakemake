@@ -8,6 +8,7 @@ rule count_kmer_in_reads:
         filel="temp_kmc_filelist_{sample}.txt"
     threads: 8
     benchmark: 'benchmark/results/read_kmers/{sample}.count_kmer_in_reads.benchmark.tsv'
+    container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
     shell:
         """
         echo {input.fq1} > {params.filel}
@@ -28,6 +29,7 @@ rule map_short_reads_giraffe:
     output: "results/gaf/{sample}.{graph}.gaf.gz"
     threads: 8
     benchmark: 'benchmark/results/gaf/{sample}.{graph}.map_short_reads_giraffe.benchmark.tsv'
+    container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
         vg giraffe --progress \
@@ -49,6 +51,7 @@ rule sample_haplotypes:
     output: "results/sample_pg/{graph}.{sample}.gbz"
     threads: 8
     benchmark: 'benchmark/results/sample_pg/{graph}.{sample}.sample_haplotypes.benchmark.tsv'
+    container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
         vg haplotypes -v 2 -t {threads} \
@@ -73,6 +76,7 @@ rule surject_reads:
         half_threads=lambda wildcards, threads: int(threads/2)
     threads: 8
     benchmark: 'benchmark/results/bam/{sample}.{graph}.surject_reads.benchmark.tsv'
+    container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
         vg surject \
