@@ -11,8 +11,6 @@ if 'sample_tsv' in config:
     if len(config['sample']) == 0:
         config['sample'] = list(pd['sample'])
 
-print(config['sample'])
-
 def getfq1(wildcards):
     # complain if sample not in the file
     if wildcards.sample not in info.fq1:
