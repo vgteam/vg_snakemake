@@ -58,10 +58,10 @@ rule index_snarls:
 
 rule extract_ref_fasta:
     input:
-        gbz="{graph}.gbz",
+        gbz=getgbz(),
         paths_list=config['ref_paths_list']
-    output: "{graph}.ref.fa"
-    benchmark: 'benchmark/{graph}.extract_ref_fasta.benchmark.tsv'
+    output: "results/pg/{graph}.ref.fa"
+    benchmark: 'benchmark/results/pg/{graph}.extract_ref_fasta.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell: "vg paths --extract-fasta -p {input.paths_list} --xg {input.gbz} > {output}"
 

@@ -32,8 +32,8 @@ rule vgcall:
 
 rule dv_make_examples:
     input:
-        ref="results/pg/{graph}.ref.fa",
-        ref_idx="results/pg/{graph}.ref.fa.fai",
+        ref=getref(),
+        ref_idx=getrefidx(),
         bam="results/bam/{sample}.{graph}.bam",
         bai="results/bam/{sample}.{graph}.bam.bai"
     output: "results/dv/make_examples.{sample}.{graph}.tfrecord.tar.gz",
@@ -66,8 +66,8 @@ rule dv_make_examples:
 
 rule dv_call_variants:
     input:
-        ref="results/pg/{graph}.ref.fa",
-        ref_idx="results/pg/{graph}.ref.fa.fai",
+        ref=getref(),
+        ref_idx=getrefidx(),
         ex="results/dv/make_examples.{sample}.{graph}.tfrecord.tar.gz"
     output:
         vcf="results/vcf/{sample}.{graph}.snv_indels.vcf.gz",

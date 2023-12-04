@@ -27,7 +27,7 @@ def getfq2(wildcards):
 
 def getgbz():
     if 'gbz' in config:
-       return config['gbz']
+        return config['gbz']
     else:
         if 'gfa' not in config:
             print("Error: neither 'gbz' nor 'gfa' are specified.")
@@ -36,12 +36,24 @@ def getgbz():
 
 def gethapl():
     if 'hapl' in config:
-       return config['hapl']
+        return config['hapl']
     else:
         return "results/pg/{graph}.hapl"
 
 def getsnarls():
     if 'snarls' in config:
-       return config['snarls']
+        return config['snarls']
     else:
         return "results/pg/{graph}.snarls"
+
+def getref():
+    if 'ref_fa' in config:
+       return config['ref_fa']
+    else:
+        return "results/pg/{graph}.ref.fa"
+
+def getrefidx():
+    if 'ref_fa_idx' in config:
+       return config['ref_fa_idx']
+    else:
+        return "results/pg/{graph}.ref.fa.fai"

@@ -1,0 +1,7 @@
+gbz: "hprc-v1.1-mc-grch38.gbz"
+hapl: "hprc-v1.1-mc-grch38.hapl"
+snarls: "hprc-v1.1-mc-grch38.snarls"
+graph: 'hprc-v1.1-mc-grch38'
+ref_paths_list: 'hprc-v1.1-mc-grch38.paths_list.txt'
+sample: "samp1"
+sample_tsv: "config/sample_info.tsv"

@@ -26,7 +26,7 @@ See [config/sample_info.tsv](config/sample_info.tsv) for an example.
 ### Map short reads to a pangenome
 
 ```
-snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 -p map_short_reads --cores 2 -n
+snakemake --config gbz=testdata/mhc.gbz hapl=testdata/mhc.hapl ref_fa=testdata/mhc.ref.fa graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 -p map_short_reads --cores 2 -n
 ```
 
 If needed, the pangenome will be indexed with the rule described above.
@@ -38,7 +38,9 @@ The user must specify a text file listing those reference paths (one path per li
 This paths list file is specified in the config with *ref_paths_list*.
 
 ```
-snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 ref_paths_list=testdata/mhc.paths_list.txt -p call_small_variants_from_short_reads --cores 2 -n
+snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 ref_paths_list=testdata/mhc.paths_list.txt -p call_small_variants_from_short_reads --cores 2 --use-singularity -n
+
+snakemake --config gbz=testdata/mhc.gbz hapl=testdata/mhc.hapl ref_fa=testdata/mhc.ref.fa ref_fa_idx=testdata/mhc.ref.fa.fai graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 -p call_small_variants_from_short_reads --cores 2 --use-singularity -n
 ```
 
 If needed, the pangenome will be indexed and the reads mapped with the rules described above.
@@ -54,3 +56,30 @@ snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_
 
 If needed, the pangenome will be indexed and the reads mapped with the rules described above.
 
+## Using existing pangenome indexes
+
+Make sure the files are dated consistently with their dependencies. 
+For example, if the GBZ file is more recent than the other indexes, the workflow will re-create them.
+The order, for the oldest to most recent file is: `.gbz`, `.dist`, `.hapl`, `.ref.fa`, `.ref.fa.fai`.
+
+### Human Pangenome Reference Consortium pangenomes
+
+Download the Minigraph-Cactus from the [human-pangenomics/hpp_pangenome_resources repo](https://github.com/human-pangenomics/hpp_pangenome_resources#minigraph-cactus):
+
+```sh
+wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.gbz
+wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.hapl
+wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.snarls
+```
+
+We'll project the reads/variants on GRCh38 so we prepare a list of paths corresponding to the main chromosomes:
+
+```sh
+vg paths -RL -x hprc-v1.1-mc-grch38.gbz | grep GRCh38 | grep -v "_" | grep -v EBV > hprc-v1.1-mc-grch38.paths_list.txt
+```
+
+Run the workflow:
+
+```sh
+snakemake --configfile config/config.hprc.yaml -p genotype_variants_from_short_reads --cores 2 -n --slurm --use-singularity --profile profile/default
+```
