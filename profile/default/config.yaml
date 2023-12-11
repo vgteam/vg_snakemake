@@ -1,3 +1,4 @@
+jobs: 100
 set-threads:
   - convert_gfa_to_gbz=16
   - index_minimizer=16
@@ -14,22 +15,22 @@ set-threads:
   - surject_reads=16
 set-resources:
   - convert_gfa_to_gbz:mem=60GB
-  - index_minimizer:mem=60GB
+  - index_minimizer:mem=120GB
   - index_distance:mem=120GB
-  - index_r:mem=60GB
+  - index_r:mem=120GB
   - index_haplotype_kmers:mem=60GB
   - index_snarls:mem=60GB
   - extract_ref_fasta:mem=20GB
   - index_fasta:mem=10GB
   - index_bam:mem=10GB
-  - pack:mem=60GB
-  - vgcall:mem=60GB
+  - pack:mem=80GB
+  - vgcall:mem=80GB
   - dv_make_examples:mem=60GB
   - dv_call_variants:mem=60GB
   - count_kmer_in_reads:mem=64GB
-  - map_short_reads_giraffe:mem=64GB
+  - map_short_reads_giraffe:mem=80GB
   - sample_haplotypes:mem=64GB
-  - surject_reads:mem=64GB
+  - surject_reads:mem=80GB
   - convert_gfa_to_gbz:runtime=3h
   - index_minimizer:runtime=3h
   - index_distance:runtime=6h
