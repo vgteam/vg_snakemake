@@ -23,3 +23,7 @@ rule call_small_variants_from_short_reads:
 rule genotype_variants_from_short_reads:
     input:
         expand('results/vcf/{sample}.{graph}.gt.vcf.gz', graph=config['graph'], sample=config['sample'])
+
+rule prepare_unmapped_reads:
+    input:
+        expand('results/unmapped_reads/{sample}.{graph}.unmapped.{r}.fq.gz', graph=config['graph'], sample=config['sample'], r=['1', '2'])

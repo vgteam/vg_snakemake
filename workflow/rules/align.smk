@@ -95,3 +95,56 @@ rule surject_reads:
 
         rm -rf {params.sort_dir}
         """
+
+rule extract_unmapped_reads:
+    input:
+        fq1=getfq1,
+        fq2=getfq2,
+        gaf="results/gaf/{sample}.{graph}.gaf.gz"
+    output:
+        fq1="results/unmapped_reads/{sample}.{graph}.unmapped.1.fq.gz",
+        fq2="results/unmapped_reads/{sample}.{graph}.unmapped.2.fq.gz"
+    params:
+        reads="temp.{sample}.{graph}.unmapped.reads.txt"
+    threads: 1
+    benchmark: 'benchmark/results/unmapped_reads/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'    
+    shell:
+        """
+        zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
+        seqtk subseq {input.fq1} {params.reads} | gzip > {output.fq1}
+        seqtk subseq {input.fq2} {params.reads} | gzip > {output.fq1}
+        rm {params.reads}
+        """
+
+rule trim_fastq:
+    input:
+        fq1=getfq1,
+        fq2=getfq2,
+        refsynt=config['refsynt_fa'],
+        adpt=config['adapters_fa']
+    output:
+        fq12="results/fq/{sample}.trimmed.fq.gz",
+        stats_synt="results/fq/qc.{sample}/bbmap.{sample}.statsSYNT.txt",
+        synt_fq1="results/fq/qc.{sample}/{sample}.synt.1.fq.gz",
+        synt_fq2="results/fq/qc.{sample}/{sample}.synt.2.fq.gz",
+        qc_before="results/fq/qc.{sample}/",
+        qc_after="results/fq/qc.{sample}/"
+    params:
+        qcdir="results/fq/fastqc.{sample}"
+    resources:
+        mem="20G",
+        runtime="3h"
+    threads: 4
+    shell:
+        """
+        mkdir {params.qcdir}
+        fastqc --noextract -t {threads} -o {params.qcdir} -a {input.adapters_fa} -c {input.refsynt_fa} {input.fq1} {input.fq2}
+        
+        seqtk mergepe {input.fq1} in2={input.fq2} | \
+        bbduk.sh -Xmx10g -t={threads} in=stdin.fq out=stdout.fq interleaved=t ref={input.adapters_fa} \
+        ftm=5 minlen=25 qtrim=rl trimq=10 ktrim=r k=23 mink=11 hdist=1 tpe tbo | \
+        bbduk.sh -Xmx10g -t={threads} in=stdin.fq out={output.fq12} interleaved=t \
+        outm1={output.synt_fq1} outm2={output.synt_fq1} ref={input.refsynt_fa} k=31 hdist=1 stats={output.stats_synt}
+
+        fastqc --noextract -t {threads} -o {params.qcdir} -a {input.adapters_fa} -c {input.refsynt_fa} {output.fq12}
+        """
