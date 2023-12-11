@@ -1,3 +1,4 @@
+jobs: 100
 set-threads:
   - convert_gfa_to_gbz=16
   - index_minimizer=8
