@@ -33,7 +33,6 @@ rule map_short_reads_giraffe:
     shell:
         """
         vg giraffe --progress \
-        --read-group "ID:1 LB:lib1 SM:{wildcards.sample} PL:illumina PU:unit1" \
         --sample "{wildcards.sample}" \
         --output-format gaf \
         -f {input.fq1} -f {input.fq2} \
@@ -73,20 +72,26 @@ rule surject_reads:
         gaf="results/gaf/{sample}.{graph}.gaf.gz"
     output: "results/bam/{sample}.{graph}.bam"
     params:
-        half_threads=lambda wildcards, threads: int(threads/2)
+        surj_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 5 else threads - 2,
+        sort_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 5 else 2,
+        sort_dir="{temp_bam_sort_{sample}_{graph}"
     threads: 8
     benchmark: 'benchmark/results/bam/{sample}.{graph}.surject_reads.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
+        mkdir -p {params.sort_dir}
+
         vg surject \
         -F {input.paths_list} \
         -x {input.gbz} \
-        -t {params.half_threads} \
+        -t {params.surj_threads} \
         --bam-output --gaf-input \
         --sample {wildcards.sample} \
         --read-group "ID:1 LB:lib1 SM:{wildcards.sample} PL:illumina PU:unit1" \
         --prune-low-cplx --interleaved --max-frag-len 3000 \
-        {input.gaf} | samtools sort --threads {params.half_threads} \
+        {input.gaf} | samtools sort --threads {params.sort_threads} -T {params.sort_dir}/temp \
         -O BAM > {output}
+
+        rm -rf {params.sort_dir}
         """

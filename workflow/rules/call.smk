@@ -1,6 +1,6 @@
 rule pack:
     input:
-        gbz=getgbz(),
+        gbz="results/sample_pg/{graph}.{sample}.gbz",
         gaf="results/gaf/{sample}.{graph}.gaf.gz"
     output: 'results/vgcall/{sample}.{graph}.pack'
     threads: 8
@@ -11,8 +11,7 @@ rule pack:
 
 rule vgcall:
     input: 
-        gbz=getgbz(),
-        snarls=getsnarls(),
+        gbz="results/sample_pg/{graph}.{sample}.gbz",
         paths_list=config['ref_paths_list'],
         pack='results/vgcall/{sample}.{graph}.pack'
     output: 'results/vcf/{sample}.{graph}.gt.vcf.gz'
@@ -27,7 +26,7 @@ rule vgcall:
         RPATHS=`echo "-p $RP $RPATHS"`
         done
         
-        vg call -t {threads} -r {input.snarls} -k {input.pack} -Aaz $RPATHS -s {wildcards.sample} {input.gbz} | gzip > {output}
+        vg call -t {threads} -k {input.pack} -Aaz $RPATHS -s {wildcards.sample} {input.gbz} | gzip > {output}
         """
 
 rule dv_make_examples:
