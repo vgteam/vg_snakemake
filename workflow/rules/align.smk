@@ -120,31 +120,35 @@ rule trim_fastq:
     input:
         fq1=getfq1,
         fq2=getfq2,
-        refsynt=config['refsynt_fa'],
-        adpt=config['adapters_fa']
+        refsynt_fa=config['refsynt_fa'],
+        adpt_fa=config['adapters_fa'],
+        adpt_tsv=config['adapters_tsv']
     output:
         fq12="results/fq/{sample}.trimmed.fq.gz",
-        stats_synt="results/fq/qc.{sample}/bbmap.{sample}.statsSYNT.txt",
-        synt_fq1="results/fq/qc.{sample}/{sample}.synt.1.fq.gz",
-        synt_fq2="results/fq/qc.{sample}/{sample}.synt.2.fq.gz",
-        qc_before="results/fq/qc.{sample}/",
-        qc_after="results/fq/qc.{sample}/"
+        qc_zip="results/fq/qc.{sample}.zip"
     params:
-        qcdir="results/fq/fastqc.{sample}"
+        qcdir="temp_fastqc.{sample}",
+        stats_synt="temp_fastqc.{sample}/{sample}.statsSYNT.txt",
+        synt_fq1="temp_fastqc.{sample}/{sample}.synt.1.fq.gz",
+        synt_fq2="temp_fastqc.{sample}/{sample}.synt.2.fq.gz"
+    benchmark: 'benchmark/results/fq/{sample}.trim_fastq.benchmark.tsv'    
     resources:
-        mem="20G",
+        mem="8G",
         runtime="3h"
     threads: 4
     shell:
         """
         mkdir {params.qcdir}
-        fastqc --noextract -t {threads} -o {params.qcdir} -a {input.adapters_fa} -c {input.refsynt_fa} {input.fq1} {input.fq2}
+        fastqc --extract --delete -f fastq -t {threads} -o {params.qcdir} -a {input.adapters_tsv} {input.fq1} {input.fq2}
         
-        seqtk mergepe {input.fq1} in2={input.fq2} | \
-        bbduk.sh -Xmx10g -t={threads} in=stdin.fq out=stdout.fq interleaved=t ref={input.adapters_fa} \
+        seqtk mergepe {input.fq1} {input.fq2} | \
+        bbduk.sh -Xmx4g -t={threads} in=stdin.fq out=stdout.fq interleaved=t ref={input.adapters_fa} \
         ftm=5 minlen=25 qtrim=rl trimq=10 ktrim=r k=23 mink=11 hdist=1 tpe tbo | \
-        bbduk.sh -Xmx10g -t={threads} in=stdin.fq out={output.fq12} interleaved=t \
-        outm1={output.synt_fq1} outm2={output.synt_fq1} ref={input.refsynt_fa} k=31 hdist=1 stats={output.stats_synt}
+        bbduk.sh -Xmx4g -t={threads} in=stdin.fq out={output.fq12} interleaved=t \
+        outm1={params.synt_fq1} outm2={params.synt_fq2} ref={input.refsynt_fa} k=31 hdist=1 stats={params.stats_synt}
 
-        fastqc --noextract -t {threads} -o {params.qcdir} -a {input.adapters_fa} -c {input.refsynt_fa} {output.fq12}
+        fastqc --extract --delete -t {threads} -o {params.qcdir} -a {input.adapters_tsv} {output.fq12}
+
+        zip {output.qc_zip} {params.qcdir}/*
+        rm -r {params.qcdir}
         """
