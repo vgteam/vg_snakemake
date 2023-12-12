@@ -13,17 +13,23 @@ rule index_pangenome:
 ## input from columns 'fq1' and 'fq2' of the TSV specified by config['sample_tsv'] (and for samples listed in config['sample'])
 rule map_short_reads:
     input:
-        expand('results/gaf/{sample}.{graph}.gaf.gz', graph=config['graph'], sample=config['sample'])
+        expand('results/{sample}.{sample}.{graph}.gaf.gz', graph=config['graph'], sample=config['sample'])
 
 ## input from columns 'fq1' and 'fq2' of the TSV specified by config['sample_tsv'] (and for samples listed in config['sample'])
 rule call_small_variants_from_short_reads:
     input:
-        expand('results/vcf/{sample}.{graph}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample'])
+        expand('results/{sample}/{sample}.{graph}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample'])
 
 rule genotype_variants_from_short_reads:
     input:
-        expand('results/vcf/{sample}.{graph}.gt.vcf.gz', graph=config['graph'], sample=config['sample'])
+        expand('results/{sample}/{sample}.{graph}.gt.vcf.gz', graph=config['graph'], sample=config['sample'])
 
 rule prepare_unmapped_reads:
     input:
-        expand('results/unmapped_reads/{sample}.{graph}.unmapped.{r}.fq.gz', graph=config['graph'], sample=config['sample'], r=['1', '2'])
+        expand('results/{sample}/{sample}.{graph}.unmapped.{r}.fq.gz', graph=config['graph'], sample=config['sample'], r=['1', '2'])
+
+rule all:
+    input:
+        expand('results/{sample}/{sample}.{graph}.unmapped.{r}.fq.gz', graph=config['graph'], sample=config['sample'], r=['1', '2']),
+        expand('results/{sample}/{sample}.{graph}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample']),
+        expand('results/{sample}/{sample}.{graph}.gt.vcf.gz', graph=config['graph'], sample=config['sample'])
