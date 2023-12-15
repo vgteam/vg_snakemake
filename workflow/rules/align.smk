@@ -68,7 +68,6 @@ else:
             -m {input.min} \
             -t {threads} | gzip > {output}
             """
-
     
 rule sample_haplotypes:
     input: 
@@ -150,9 +149,6 @@ rule prepare_target_regions:
     params:
         inter="{sample}.{graph}.forIndelRealigner.intervals",
         bed="{sample}.{graph}.forIndelRealigner.bed"
-    resources:
-        mem="16GB",
-        runtime='3h'
     shell:
         """
         java -Xmx16G -jar /usr/GenomeAnalysisTK.jar -T RealignerTargetCreator \
@@ -183,9 +179,6 @@ rule realign_bam:
     priority: 5
     container: 'docker://quay.io/adamnovak/dceoy-abra2@sha256:43d09d1c10220cfeab09e2763c2c5257884fa4457bcaa224f4e3796a28a24bba'
     threads: 8
-    resources:
-        mem="16GB",
-        runtime='6h'
     shell:
         """
         java -Xmx16G -jar /opt/abra2/abra2.jar \
