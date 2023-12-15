@@ -3,3 +3,6 @@ graph: 'mhc-test'
 ref_paths_list: 'testdata/mhc.paths_list.txt'
 sample: "samp1"
 sample_tsv: "config/sample_info.tsv"
+gt_min_var_len: 30
+indel_realign_reads: False
+seqn_prefix: "MHC-GRCh38#0#"

@@ -56,6 +56,12 @@ snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_
 
 If needed, the pangenome will be indexed and the reads mapped with the rules described above.
 
+## Run all the analysis described above
+
+```
+snakemake --config gfa=testdata/mhc.gfa graph=mhc-test sample_tsv=config/sample_info.tsv sample=samp1 ref_paths_list=testdata/mhc.paths_list.txt -p all --cores 2 -n
+```
+
 ## Using existing pangenome indexes
 
 Make sure the files are dated consistently with their dependencies. 
@@ -78,8 +84,18 @@ We'll project the reads/variants on GRCh38 so we prepare a list of paths corresp
 vg paths -RL -x hprc-v1.1-mc-grch38.gbz | grep GRCh38 | grep -v "_" | grep -v EBV > hprc-v1.1-mc-grch38.paths_list.txt
 ```
 
+Optional: (manually) order those path names. They will define the order in the BAMs. Or use the path lists in [config/hprc-v1.1-mc-grch38.paths_list.txt](config/hprc-v1.1-mc-grch38.paths_list.txt).
+
 Run the workflow:
 
 ```sh
 snakemake --configfile config/config.hprc.yaml -p genotype_variants_from_short_reads --cores 2 -n --slurm --use-singularity --profile profile/default
 ```
+
+## Understanding the config file
+
+*Soon: details about indel realignment, renaming chromosomes, and other parameters that can be tweaked.*
+
+## Recommendations to adapt the workflow to an HPC
+
+*Soon: how to use/specify envmodules, disable some containers, space management*

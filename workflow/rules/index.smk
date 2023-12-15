@@ -48,7 +48,7 @@ rule index_snarls:
 
 rule index_distance:
     input: "results/{sample}/{graph}.sample_pg.{sample}.gbz"
-    output: "results/{sample}/{graph}.sample_pg.{sample}.dist"
+    output: temp("results/{sample}/{graph}.sample_pg.{sample}.dist")
     benchmark: 'benchmark/{sample}.{graph}.index_distance.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell: "vg index -j {output} {input}"
@@ -58,7 +58,7 @@ rule index_minimizer:
         gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
         dist="results/{sample}/{graph}.sample_pg.{sample}.dist"
     threads: 8
-    output: "results/{sample}/{graph}.sample_pg.{sample}.min"
+    output: temp("results/{sample}/{graph}.sample_pg.{sample}.min")
     benchmark: 'benchmark/{sample}.{graph}.index_minimizer.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell: "vg minimizer -t {threads} -d {input.dist} -o {output} {input.gbz}"
@@ -70,18 +70,38 @@ rule extract_ref_fasta:
     output: "results/pg/{graph}.ref.fa"
     benchmark: 'benchmark/{graph}.extract_ref_fasta.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
-    shell: "vg paths --extract-fasta -p {input.paths_list} --xg {input.gbz} > {output}"
+    params:
+        seqn_prefix=config['seqn_prefix']
+    shell:
+        """
+        vg paths --extract-fasta -p {input.paths_list} --xg {input.gbz} | sed -e "s/>{params.seqn_prefix}/>/g" > {output}
+        """
 
 rule index_fasta:
-    input: "results/pg/{graph}.ref.fa"
-    output: "results/pg/{graph}.ref.fa.fai"
-    benchmark: 'benchmark/{graph}.index_fasta.benchmark.tsv'
-    container: "docker://quay.io/biocontainers/samtools:1.18--hd87286a_0"
-    shell: "samtools faidx {input}"
+    input: getref()
+    output:
+        ref_idx="results/pg/{graph}.ref.fa.fai",
+        dict="results/pg/{graph}.ref.dict"
+    container: "docker://quay.io/cmarkello/samtools_picard@sha256:e484603c61e1753c349410f0901a7ba43a2e5eb1c6ce9a240b7f737bba661eb4"
+    shell:
+        """
+        samtools faidx {input}
+        # Save a reference copy by making the dict now
+        java -jar /usr/picard/picard.jar CreateSequenceDictionary \
+          R={input} \
+          O={output.dict}
+        """
 
 rule index_bam:
     input: "results/{sample}/{sample}.{graph}.bam"
     output: "results/{sample}/{sample}.{graph}.bam.bai"
+    benchmark: 'benchmark/{sample}.{graph}.index_bam.benchmark.tsv'
+    container: "docker://quay.io/biocontainers/samtools:1.18--hd87286a_0"
+    shell: "samtools index {input} {output}"
+
+rule index_bam_tmp:
+    input: "results/{sample}/temp_{sample}.{graph}.bam"
+    output: temp("results/{sample}/temp_{sample}.{graph}.bam.bai")
     benchmark: 'benchmark/{sample}.{graph}.index_bam.benchmark.tsv'
     container: "docker://quay.io/biocontainers/samtools:1.18--hd87286a_0"
     shell: "samtools index {input} {output}"
