@@ -110,6 +110,7 @@ rule surject_reads:
         seqn_prefix=config['seqn_prefix']
     threads: 8
     benchmark: 'benchmark/{sample}.{graph}.surject_reads.benchmark.tsv'
+    container: "docker://quay.io/jmonlong/freebayes-samtools-vg:1.2.0_1.10.0_1.53.0"
     shell:
         """
         mkdir -p {params.sort_dir}
