@@ -1,25 +1,22 @@
-rule count_kmer_in_reads:
-    input:
-        fq1=getfq1,
-        fq2=getfq2
-    output: temp("results/{sample}/{sample}.kff")
-    params:
-        wdir="temp_kmc_{sample}",
-        filel="temp_kmc_filelist_{sample}.txt"
-    threads: 8
-    benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
-    container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
-    shell:
-        """
-        echo {input.fq1} > {params.filel}
-        echo {input.fq2} >> {params.filel}
-        mkdir -p {params.wdir}
-        kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.wdir}/out {params.wdir}
-        mv {params.wdir}/out.kff {output}
-        rm -r {params.filel} {params.wdir}
-        """
-
 if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(config['adapters_tsv']) > 0:
+    rule count_kmer_in_reads:
+        input: "results/{sample}/{sample}.trimmed.fq.gz"
+        output: temp("results/{sample}/{sample}.kff")
+        params:
+            wdir="temp_kmc_{sample}",
+            filel="temp_kmc_filelist_{sample}.txt"
+        threads: 8
+        benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
+        container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
+        shell:
+            """
+            echo {input} > {params.filel}
+            mkdir -p {params.wdir}
+            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.wdir}/out {params.wdir}
+            mv {params.wdir}/out.kff {output}
+            rm -r {params.filel} {params.wdir}
+            """
+
     # if reads were trimmed, align from the trimmed interleaved fastq
     rule map_short_reads_giraffe:
         input: 
@@ -44,6 +41,27 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
             -t {threads} | gzip > {output}
             """
 else:
+    rule count_kmer_in_reads:
+        input:
+            fq1=getfq1,
+            fq2=getfq2
+        output: temp("results/{sample}/{sample}.kff")
+        params:
+            wdir="temp_kmc_{sample}",
+            filel="temp_kmc_filelist_{sample}.txt"
+        threads: 8
+        benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
+        container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
+        shell:
+            """
+            echo {input.fq1} > {params.filel}
+            echo {input.fq2} >> {params.filel}
+            mkdir -p {params.wdir}
+            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.wdir}/out {params.wdir}
+            mv {params.wdir}/out.kff {output}
+            rm -r {params.filel} {params.wdir}
+            """
+
     # otherwise, align from the input fastq pair
     rule map_short_reads_giraffe:
         input: 
@@ -77,7 +95,7 @@ rule sample_haplotypes:
     output: "results/{sample}/{graph}.sample_pg.{sample}.gbz"
     threads: 8
     priority: 1
-    benchmark: 'benchmark/results/sample_pg/{graph}.{sample}.sample_haplotypes.benchmark.tsv'
+    benchmark: 'benchmark/{sample}.{graph}.sample_haplotypes.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     shell:
         """
@@ -104,9 +122,9 @@ rule surject_reads:
     output: "results/{sample}/{sample}.{graph}.surj.bam"
     priority: 3
     params:
-        surj_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 5 else threads - 2,
-        sort_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 5 else 2,
-        sort_dir="{temp_bam_sort_{sample}_{graph}",
+        surj_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 7 else threads - 4,
+        sort_threads=lambda wildcards, threads: 1 if threads < 7 else 2,
+        sort_dir="temp_bam_sort_{sample}_{graph}",
         seqn_prefix=config['seqn_prefix']
     threads: 8
     benchmark: 'benchmark/{sample}.{graph}.surject_reads.benchmark.tsv'
@@ -124,8 +142,8 @@ rule surject_reads:
         --read-group "ID:1 LB:lib1 SM:{wildcards.sample} PL:illumina PU:unit1" \
         --prune-low-cplx --interleaved --max-frag-len 3000 \
         {input.gaf} | \
-        python3 {input.rename_script} -f {input.ref_idx} -p "{params.seqn_prefix}" | \
-        bamleftalign --fasta-reference {input.ref} | \
+        python {input.rename_script} -f {input.ref_idx} -p "{params.seqn_prefix}" | \
+        bamleftalign --fasta-reference {input.ref} --compressed | \
         samtools sort --threads {params.sort_threads} -T {params.sort_dir}/temp \
         -O BAM > {output}
 
@@ -182,7 +200,7 @@ rule realign_bam:
     threads: 8
     shell:
         """
-        java -Xmx16G -jar /opt/abra2/abra2.jar \
+        java -Xmx28G -jar /opt/abra2/abra2.jar \
           --targets {input.target_bed} \
           --in {input.bam} \
           --out {output} \
@@ -226,9 +244,6 @@ rule trim_fastq:
         synt_fq1="temp_fastqc.{sample}/{sample}.synt.1.fq.gz",
         synt_fq2="temp_fastqc.{sample}/{sample}.synt.2.fq.gz"
     benchmark: 'benchmark/{sample}.trim_fastq.benchmark.tsv'    
-    resources:
-        mem="8G",
-        runtime="3h"
     threads: 4
     shell:
         """
@@ -236,9 +251,9 @@ rule trim_fastq:
         fastqc --extract --delete -f fastq -t {threads} -o {params.qcdir} -a {input.adpt_tsv} {input.fq1} {input.fq2}
 
         seqtk mergepe {input.fq1} {input.fq2} | \
-        bbduk.sh -Xmx4g -t={threads} in=stdin.fq out=stdout.fq interleaved=t ref={input.adpt_fa} \
+        bbduk.sh -Xmx7g -t={threads} in=stdin.fq out=stdout.fq interleaved=t ref={input.adpt_fa} \
         ftm=5 minlen=25 qtrim=rl trimq=10 ktrim=r k=23 mink=11 hdist=1 tpe tbo | \
-        bbduk.sh -Xmx4g -t={threads} in=stdin.fq out={output.fq12} interleaved=t \
+        bbduk.sh -Xmx7g -t={threads} in=stdin.fq out={output.fq12} interleaved=t \
         outm1={params.synt_fq1} outm2={params.synt_fq2} ref={input.refsynt_fa} k=31 hdist=1 stats={params.stats_synt}
 
         fastqc --extract --delete -t {threads} -o {params.qcdir} -a {input.adpt_tsv} {output.fq12}

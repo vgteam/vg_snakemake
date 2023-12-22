@@ -1,8 +1,11 @@
 gfa: "testdata/mhc.gfa"
 graph: 'mhc-test'
 ref_paths_list: 'testdata/mhc.paths_list.txt'
+seqn_prefix: "MHC-GRCh38#0#"
 sample: "samp1"
 sample_tsv: "config/sample_info.tsv"
 gt_min_var_len: 30
-indel_realign_reads: False
-seqn_prefix: "MHC-GRCh38#0#"
+indel_realign_reads: True
+refsynt_fa: "testdata/refsynt.fa"
+adapters_fa: "testdata/adapters-test.fa"
+adapters_tsv: "testdata/adapters-test.tsv"

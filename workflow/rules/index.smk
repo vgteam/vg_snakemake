@@ -71,10 +71,17 @@ rule extract_ref_fasta:
     benchmark: 'benchmark/{graph}.extract_ref_fasta.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
     params:
-        seqn_prefix=config['seqn_prefix']
+        seqn_prefix=config['seqn_prefix'],
+        temp_paths='temp.path_name.{graph}.txt'
     shell:
         """
-        vg paths --extract-fasta -p {input.paths_list} --xg {input.gbz} | sed -e "s/>{params.seqn_prefix}/>/g" > {output}
+        rm -f {output} {params.temp_paths}
+        for CHR in `cat {input.paths_list}`
+        do
+        echo $CHR > {params.temp_paths}
+        vg paths --extract-fasta -p {params.temp_paths} --xg {input.gbz} | sed -e "s/>{params.seqn_prefix}/>/g" >> {output}
+        done
+        rm -f {params.temp_paths}
         """
 
 rule index_fasta:
