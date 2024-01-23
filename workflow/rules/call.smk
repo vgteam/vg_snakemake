@@ -102,3 +102,50 @@ rule dv_call_variants:
 
         rm -fr {params.call_tf} {params.dvdir}
         """
+
+rule sv_call_manta:
+    input: 
+        ref=getref(),
+        ref_idx=getrefidx(),
+        bam="results/{sample}/{sample}.{graph}.{surj}.bam",
+        bai="results/{sample}/{sample}.{graph}.{surj}.bam.bai"
+    output:
+        calls="results/{sample}/{sample}.{graph}.{surj}.sv_manta.vcf.gz",
+        cand="results/{sample}/{sample}.{graph}.{surj}.sv_manta_candidates.vcf.gz"
+    params:
+        tmp_dir='temp.manta.{sample}.{graph}.{surj}'
+    threads: 8
+    container: "docker://quay.io/biocontainers/manta:1.6.0--py27_0"
+    priority: 6
+    benchmark: 'benchmark/{sample}.{graph}.{surj}.manta.benchmark.tsv'
+    log: 'logs/{sample}.{graph}.{surj}.manta.log'
+    shell:
+        """
+        configManta.py --bam {input.bam} --referenceFasta {input.ref} --runDir {params.tmp_dir}
+        {params.tmp_dir}/runWorkflow.py -j {threads} 2> {log}
+        mv {params.tmp_dir}/results/variants/diploidSV.vcf.gz {output.calls}
+        mv {params.tmp_dir}/results/variants/candidateSV.vcf.gz {output.cand}
+        rm -rf {params.tmp_dir}
+        """
+
+rule coverage_mosdepth:
+    input:
+        bam="results/{sample}/{sample}.{graph}.{surj}.bam",
+        bai="results/{sample}/{sample}.{graph}.{surj}.bam.bai"
+    output:
+        qbed="results/{sample}/{sample}.{graph}.{surj}.coverage.q.bed.gz",
+        bed="results/{sample}/{sample}.{graph}.{surj}.coverage.bed.gz"
+    params:
+        tmp_dir="temp.mosdepth.{sample}.{graph}.{surj}"
+    threads: 4
+    container: "docker://quay.io/biocontainers/mosdepth:0.3.6--hd299d5a_0"
+    priority: 6
+    benchmark: 'benchmark/{sample}.{graph}.{surj}.coverage_mosdepth.benchmark.tsv'
+    shell:
+        """
+        mkdir -p {params.tmp_dir}
+        mosdepth -q 0:1:4:100: -b 500 -t {threads} {params.tmp_dir}/cov {input.bam}
+        mv {params.tmp_dir}/cov.quantized.bed.gz {output.qbed}
+        mv {params.tmp_dir}/cov.regions.bed.gz {output.bed}
+        rm -rf {params.tmp_dir}
+        """
