@@ -9,6 +9,7 @@ set-threads:
   - vgcall=4
   - dv_make_examples=8
   - dv_call_variants=8
+  - dv_call_variants_gpu=8
   - count_kmer_in_reads=8
   - map_short_reads_giraffe=16
   - sample_haplotypes=8
@@ -48,6 +49,9 @@ set-resources:
   - dv_make_examples:runtime=12h
   - dv_call_variants:mem=32GB
   - dv_call_variants:runtime=20h
+  - dv_call_variants_gpu:mem=32GB
+  - dv_call_variants_gpu:runtime=20h
+  - dv_call_variants_gpu:slurm_extra=--partition=gpuq --gres=gpu:A100_1g.10gb:1
   - count_kmer_in_reads:mem=64GB
   - count_kmer_in_reads:runtime=1h
   - map_short_reads_giraffe:mem=64GB

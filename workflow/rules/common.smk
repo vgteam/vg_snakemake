@@ -16,6 +16,10 @@ if config['indel_realign_reads']:
     # if indel realignment is on, use surjected reads that are then realigned
     config['bam_mode'] = 'surj_realn'
 
+# should we try to use GPU? by default, no
+if 'use_gpu' not in config:
+    config['use_gpu'] = False
+    
 # load information about the samples (if a sample TSV is provided)
 info = {}
 if 'sample_tsv' in config:

@@ -67,38 +67,76 @@ rule dv_make_examples:
         rm -rf {params.dvdir}
         """
 
-rule dv_call_variants:
-    input:
-        ref=getref(),
-        ref_idx=getrefidx(),
-        ex="results/{sample}/{sample}.{graph}.{surj}.make_examples.tfrecord.tar.gz"
-    output:
-        vcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz",
-        gvcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz"
-    params:
-        call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
-        label="{sample}.{graph}.{surj}",
-        dvdir="dv_{sample}_{graph}_{surj}"
-    container: "docker://google/deepvariant:1.5.0"
-    threads: 8
-    priority: 7
-    benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_call_variants.benchmark.tsv'
-    log: 'logs/{sample}.{graph}.{surj}.dv_call_variants.log'
-    shell:
-        """
-        tar -xzf {input.ex}
+if config['use_gpu']:
+    rule dv_call_variants_gpu:
+        input:
+            ref=getref(),
+            ref_idx=getrefidx(),
+            ex="results/{sample}/{sample}.{graph}.{surj}.make_examples.tfrecord.tar.gz"
+        output:
+            vcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz",
+            gvcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz"
+        params:
+            call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
+            label="{sample}.{graph}.{surj}",
+            dvdir="dv_{sample}_{graph}_{surj}"
+        container: "docker://google/deepvariant:1.5.0-gpu"
+        threads: 8
+        priority: 7
+        benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_call_variants_gpu.benchmark.tsv'
+        log: 'logs/{sample}.{graph}.{surj}.dv_call_variants_gpu.log'
+        shell:
+            """
+            tar -xzf {input.ex}
 
-        /opt/deepvariant/bin/call_variants \
-        --outfile {params.call_tf} \
-        --examples "{params.dvdir}/make_examples.{params.label}.tfrecord@{threads}.gz" \
-        --checkpoint /opt/models/wgs/model.ckpt 2> {log}
+            /opt/deepvariant/bin/call_variants \
+            --outfile {params.call_tf} \
+            --examples "{params.dvdir}/make_examples.{params.label}.tfrecord@{threads}.gz" \
+            --checkpoint /opt/models/wgs/model.ckpt 2> {log}
 
-        /opt/deepvariant/bin/postprocess_variants \
-        --ref {input.ref} \
-        --infile {params.call_tf} \
-        --nonvariant_site_tfrecord_path "{params.dvdir}/gvcf.{params.label}.tfrecord@{threads}.gz" \
-        --outfile "{output.vcf}" \
-        --gvcf_outfile "{output.gvcf}" 2>> {log}
+            /opt/deepvariant/bin/postprocess_variants \
+            --ref {input.ref} \
+            --infile {params.call_tf} \
+            --nonvariant_site_tfrecord_path "{params.dvdir}/gvcf.{params.label}.tfrecord@{threads}.gz" \
+            --outfile "{output.vcf}" \
+            --gvcf_outfile "{output.gvcf}" 2>> {log}
 
-        rm -fr {params.call_tf} {params.dvdir}
-        """
+            rm -fr {params.call_tf} {params.dvdir}
+            """
+else:
+    rule dv_call_variants:
+        input:
+            ref=getref(),
+            ref_idx=getrefidx(),
+            ex="results/{sample}/{sample}.{graph}.{surj}.make_examples.tfrecord.tar.gz"
+        output:
+            vcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz",
+            gvcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz"
+        params:
+            call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
+            label="{sample}.{graph}.{surj}",
+            dvdir="dv_{sample}_{graph}_{surj}"
+        container: "docker://google/deepvariant:1.5.0"
+        threads: 8
+        priority: 7
+        benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_call_variants.benchmark.tsv'
+        log: 'logs/{sample}.{graph}.{surj}.dv_call_variants.log'
+        shell:
+            """
+            tar -xzf {input.ex}
+
+            /opt/deepvariant/bin/call_variants \
+            --outfile {params.call_tf} \
+            --examples "{params.dvdir}/make_examples.{params.label}.tfrecord@{threads}.gz" \
+            --checkpoint /opt/models/wgs/model.ckpt 2> {log}
+
+            /opt/deepvariant/bin/postprocess_variants \
+            --ref {input.ref} \
+            --infile {params.call_tf} \
+            --nonvariant_site_tfrecord_path "{params.dvdir}/gvcf.{params.label}.tfrecord@{threads}.gz" \
+            --outfile "{output.vcf}" \
+            --gvcf_outfile "{output.gvcf}" 2>> {log}
+
+            rm -fr {params.call_tf} {params.dvdir}
+            """
+

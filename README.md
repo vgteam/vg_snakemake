@@ -99,3 +99,29 @@ snakemake --configfile config/config.hprc.yaml -p genotype_variants_from_short_r
 ## Recommendations to adapt the workflow to an HPC
 
 *Soon: how to use/specify envmodules, disable some containers, space management*
+
+## Using GPUs
+
+If DeepVariant is run through containers with Singularity (default currently), a parameter needs to be added to enable GPU usage.
+In addition to `--use-singularity`, we should add `--singularity-args '--nv -B .:/dum'` to the snakemake command.
+This will make sure that the singularity instances are run with `--nv`.
+(The `-B .:/dum` part is just a hack to avoid [a bug in snakemake](https://github.com/snakemake/snakemake/issues/1763).)
+
+In addition, the value of `use_gpu` must be set to `True` in the config, either by editing the YAML config file passed with `--configfile`, or by adding `--config use_gpu=True` to the snakemake command.
+
+In summary, the snakemake command, when using GPUs, looks like this:
+
+```sh
+snakemake --configfile my.config.yaml -p all --use-singularity --singularity-args '--nv -B .:/dum' --config use_gpu=True 
+```
+
+Using Slurm, it would look like this:
+
+```sh
+snakemake --configfile my.config.yaml -p all --slurm --profile profile/default --use-singularity --singularity-args '--nv -B .:/dum' --config use_gpu=True 
+```
+
+Activating GPUs on Slurm will depend on the slurm environment and vary from platform to platform.
+To adapt to your Slurm environment, modify `dv_call_variants_gpu:slurm_extra` in the profile configuration file (passed with `--profile`, see [default config](profile/default/config.yaml)).
+This parameter specifies which parameter should be passed to Slurm run a job with GPUs.
+For example, it's currently `dv_call_variants_gpu:slurm_extra=--partition=gpuq --gres=gpu:A100_1g.10gb:1` because we need to include `--partition=gpuq --gres=gpu:A100_1g.10gb:1` to the use special *gpuq* queue and specify GPUs in our Slurm environment ([Genotoul](https://bioinfo.genotoul.fr/)).
