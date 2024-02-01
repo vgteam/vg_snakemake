@@ -152,12 +152,13 @@ rule sv_call_manta:
     params:
         tmp_dir='temp.manta.{sample}.{graph}.{surj}'
     threads: 8
-    container: "docker://quay.io/biocontainers/manta:1.6.0--py27_0"
+    container: "docker://quay.io/jmonlong/manta:main"
     priority: 6
     benchmark: 'benchmark/{sample}.{graph}.{surj}.manta.benchmark.tsv'
     log: 'logs/{sample}.{graph}.{surj}.manta.log'
     shell:
         """
+        rm -rf {params.tmp_dir}
         configManta.py --bam {input.bam} --referenceFasta {input.ref} --runDir {params.tmp_dir}
         {params.tmp_dir}/runWorkflow.py -j {threads} 2> {log}
         mv {params.tmp_dir}/results/variants/diploidSV.vcf.gz {output.calls}

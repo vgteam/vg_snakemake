@@ -18,6 +18,8 @@ set-threads:
   - prepare_target_regions=8
   - realign_bam=16
   - trim_fastq=8
+  - sv_call_manta=8
+  - coverage_mosdepth=4
 set-resources:
   - convert_gfa_to_gbz:mem=60GB
   - convert_gfa_to_gbz:runtime=3h
@@ -68,3 +70,7 @@ set-resources:
   - realign_bam:runtime=24h
   - trim_fastq:mem=16GB
   - trim_fastq:runtime=12h
+  - sv_call_manta:mem=32GB
+  - sv_call_manta:runtime=12h
+  - coverage_mosdepth:mem=16GB
+  - coverage_mosdepth:runtime=12h
