@@ -24,7 +24,7 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
             gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
             dist='results/{sample}/{graph}.sample_pg.{sample}.dist',
             min='results/{sample}/{graph}.sample_pg.{sample}.min'
-        output: "results/{sample}/{sample}.{graph}.gaf.gz"
+        output: tempCond("results/{sample}/{sample}.{graph}.gaf.gz")
         threads: 8
         priority: 2
         benchmark: 'benchmark/{sample}.{graph}.map_short_reads_giraffe.benchmark.tsv'
@@ -70,7 +70,7 @@ else:
             gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
             dist='results/{sample}/{graph}.sample_pg.{sample}.dist',
             min='results/{sample}/{graph}.sample_pg.{sample}.min'
-        output: "results/{sample}/{sample}.{graph}.gaf.gz"
+        output: tempCond("results/{sample}/{sample}.{graph}.gaf.gz")
         threads: 8
         priority: 2
         benchmark: 'benchmark/{sample}.{graph}.map_short_reads_giraffe.benchmark.tsv'
@@ -92,7 +92,7 @@ rule sample_haplotypes:
         gbz=getgbz(),
         hapl=gethapl(),
         read_kmer='results/{sample}/{sample}.kff'
-    output: "results/{sample}/{graph}.sample_pg.{sample}.gbz"
+    output: tempCond("results/{sample}/{graph}.sample_pg.{sample}.gbz")
     threads: 8
     priority: 1
     benchmark: 'benchmark/{sample}.{graph}.sample_haplotypes.benchmark.tsv'
@@ -119,7 +119,7 @@ rule surject_reads:
         ref=getref(),
         ref_idx=getrefidx(),
         rename_script="workflow/scripts/rename_bam_stream.py"
-    output: "results/{sample}/{sample}.{graph}.surj.bam"
+    output: tempCond("results/{sample}/{sample}.{graph}.surj.bam")
     priority: 3
     params:
         surj_threads=lambda wildcards, threads: max(1, int(threads/2)) if threads < 7 else threads - 4,
@@ -192,7 +192,7 @@ rule realign_bam:
         target_bed="results/{sample}/{sample}.{graph}.realn_targets.bed",
         bam="results/{sample}/temp_{sample}.{graph}.surj.bam",
         bai="results/{sample}/temp_{sample}.{graph}.surj.bam.bai"
-    output: "results/{sample}/{sample}.{graph}.surj_realn.bam"
+    output: tempCond("results/{sample}/{sample}.{graph}.surj_realn.bam")
     benchmark: "benchmark/{sample}.{graph}.realign_bam.benchmark.tsv"
     log: "logs/{sample}.{graph}.realign_bam.log"
     priority: 5
@@ -214,8 +214,8 @@ rule extract_unmapped_reads:
         fq2=getfq2,
         gaf="results/{sample}/{sample}.{graph}.gaf.gz"
     output:
-        fq1="results/{sample}/{sample}.{graph}.unmapped.1.fq.gz",
-        fq2="results/{sample}/{sample}.{graph}.unmapped.2.fq.gz"
+        fq1=tempCond("results/{sample}/{sample}.{graph}.unmapped.1.fq.gz"),
+        fq2=tempCond("results/{sample}/{sample}.{graph}.unmapped.2.fq.gz")
     params:
         reads="temp.{sample}.{graph}.unmapped.reads.txt"
     threads: 1
@@ -236,8 +236,8 @@ rule trim_fastq:
         adpt_fa=config['adapters_fa'],
         adpt_tsv=config['adapters_tsv']
     output:
-        fq12="results/{sample}/{sample}.trimmed.fq.gz",
-        qc_zip="results/{sample}/fastq_qc.{sample}.zip"
+        fq12=tempCond("results/{sample}/{sample}.trimmed.fq.gz"),
+        qc_zip=tempCond("results/{sample}/fastq_qc.{sample}.zip")
     params:
         qcdir="temp_fastqc.{sample}",
         stats_synt="temp_fastqc.{sample}/{sample}.statsSYNT.txt",

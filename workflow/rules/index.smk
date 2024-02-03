@@ -101,7 +101,7 @@ rule index_fasta:
 
 rule index_bam:
     input: "results/{sample}/{sample}.{graph}.bam"
-    output: "results/{sample}/{sample}.{graph}.bam.bai"
+    output: tempCond("results/{sample}/{sample}.{graph}.bam.bai")
     benchmark: 'benchmark/{sample}.{graph}.index_bam.benchmark.tsv'
     container: "docker://quay.io/biocontainers/samtools:1.18--hd87286a_0"
     shell: "samtools index {input} {output}"

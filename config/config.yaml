@@ -6,3 +6,4 @@ sample: "samp1"
 sample_tsv: "config/sample_info.tsv"
 gt_min_var_len: 30
 indel_realign_reads: True
+rm_all_on_success: False
