@@ -15,7 +15,7 @@ rule vgcall:
         gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
         paths_list=config['ref_paths_list'],
         pack='results/{sample}/{sample}.{graph}.pack'
-    output: 'results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz'
+    output: temp('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz')
     threads: 8
     priority: 4
     benchmark: 'benchmark/{sample}.{graph}.vgcall.minlen{minlen}.benchmark.tsv'
@@ -74,8 +74,8 @@ if config['use_gpu']:
             ref_idx=getrefidx(),
             ex="results/{sample}/{sample}.{graph}.{surj}.make_examples.tfrecord.tar.gz"
         output:
-            vcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz",
-            gvcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz"
+            vcf=temp("results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz"),
+            gvcf=temp("results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz")
         params:
             call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
             label="{sample}.{graph}.{surj}",
@@ -110,8 +110,8 @@ else:
             ref_idx=getrefidx(),
             ex="results/{sample}/{sample}.{graph}.{surj}.make_examples.tfrecord.tar.gz"
         output:
-            vcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz",
-            gvcf="results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz"
+            vcf=temp("results/{sample}/{sample}.{graph}.{surj}.snv_indels.vcf.gz"),
+            gvcf=temp("results/{sample}/{sample}.{graph}.{surj}.snv_indels.g.vcf.gz")
         params:
             call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
             label="{sample}.{graph}.{surj}",
@@ -147,8 +147,8 @@ rule sv_call_manta:
         bam="results/{sample}/{sample}.{graph}.{surj}.bam",
         bai="results/{sample}/{sample}.{graph}.{surj}.bam.bai"
     output:
-        calls="results/{sample}/{sample}.{graph}.{surj}.sv_manta.vcf.gz",
-        cand="results/{sample}/{sample}.{graph}.{surj}.sv_manta_candidates.vcf.gz"
+        calls=temp("results/{sample}/{sample}.{graph}.{surj}.sv_manta.vcf.gz"),
+        cand=temp("results/{sample}/{sample}.{graph}.{surj}.sv_manta_candidates.vcf.gz")
     params:
         tmp_dir='temp.manta.{sample}.{graph}.{surj}'
     threads: 8
@@ -171,8 +171,8 @@ rule coverage_mosdepth:
         bam="results/{sample}/{sample}.{graph}.{surj}.bam",
         bai="results/{sample}/{sample}.{graph}.{surj}.bam.bai"
     output:
-        qbed="results/{sample}/{sample}.{graph}.{surj}.coverage.q.bed.gz",
-        bed="results/{sample}/{sample}.{graph}.{surj}.coverage.bed.gz"
+        qbed=temp("results/{sample}/{sample}.{graph}.{surj}.coverage.q.bed.gz"),
+        bed=temp("results/{sample}/{sample}.{graph}.{surj}.coverage.bed.gz")
     params:
         tmp_dir="temp.mosdepth.{sample}.{graph}.{surj}"
     threads: 4
