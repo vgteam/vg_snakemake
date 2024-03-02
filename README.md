@@ -125,3 +125,13 @@ Activating GPUs on Slurm will depend on the slurm environment and vary from plat
 To adapt to your Slurm environment, modify `dv_call_variants_gpu:slurm_extra` in the profile configuration file (passed with `--profile`, see [default config](profile/default/config.yaml)).
 This parameter specifies which parameter should be passed to Slurm run a job with GPUs.
 For example, it's currently `dv_call_variants_gpu:slurm_extra=--partition=gpuq --gres=gpu:A100_1g.10gb:1` because we need to include `--partition=gpuq --gres=gpu:A100_1g.10gb:1` to the use special *gpuq* queue and specify GPUs in our Slurm environment ([Genotoul](https://bioinfo.genotoul.fr/)).
+
+## Minimizing local disk usage
+
+Temporary files have been marked so that they will be removed as soon as they are not needed. 
+Higher priority has also been given to tasks later in the pipeline so jobs to finish samples will be sent rather than jobs starting new samples.
+
+Another approach might be to migrate/archive the results once they are ready (and delete the local copy from the server).
+To do this, one could tweak the main `Snakefile`, adding a rule to perform this file transfer. *Example coming soon.*
+For this mode, we can use `rm_all_on_success=True` in the Snakemake configuration to make sure even the "final" output files are removed as soon as they are not needed, for example once they've been migrated/archived.
+

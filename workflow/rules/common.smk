@@ -81,3 +81,10 @@ def getrefdict():
        return config['ref_fa_dict']
     else:
         return "results/pg/{graph}.ref.dict"
+
+if 'rm_all_on_success' in config and config['rm_all_on_success']:
+    def tempCond(filen):
+        return (temp(filen))
+else:
+    def tempCond(filen):
+        return (filen)
