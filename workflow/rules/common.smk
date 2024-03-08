@@ -1,7 +1,10 @@
 import pandas as pd
 
+if 'sample' in config and config['sample'] is None:
+    config['sample'] = []
+
 # parse sample list: if specified and one item, try to split at white spaces
-if 'sample' in config and len(config['sample']) == 0:
+if 'sample' in config and not isinstance(config['sample'], list):
     config['sample'] = config['sample'].split(' ')
 
 # init config to avoid errors
@@ -19,14 +22,17 @@ if config['indel_realign_reads']:
 # should we try to use GPU? by default, no
 if 'use_gpu' not in config:
     config['use_gpu'] = False
-    
+
+if 'max_samps' in config:
+    config['max_samps'] = int(config['max_samps'])
+
 # load information about the samples (if a sample TSV is provided)
 info = {}
 if 'sample_tsv' in config:
     info = pd.read_csv(config["sample_tsv"], sep="\t", dtype={"sample": str}).set_index("sample", drop=False).sort_index()
     
     if len(config['sample']) == 0:
-        config['sample'] = list(pd['sample'])
+        config['sample'] = list(info['sample'])
 
 # rules to either get the files specified by the user, or path that will trigger rules to make them
 def getfq1(wildcards):

@@ -1,20 +1,22 @@
 if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(config['adapters_tsv']) > 0:
     rule count_kmer_in_reads:
-        input: "results/{sample}/{sample}.trimmed.fq.gz"
+        input:
+            fq="results/{sample}/{sample}.trimmed.fq.gz",
+            fqqc="results/{sample}/fastq_qc_raw.{sample}.zip"
         output: temp("results/{sample}/{sample}.kff")
         params:
             wdir="temp_kmc_{sample}",
+            ofile="results/{sample}/{sample}",
             filel="temp_kmc_filelist_{sample}.txt"
         threads: 8
         benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
         container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
         shell:
             """
-            echo {input} > {params.filel}
+            echo {input.fq} > {params.filel}
             rm -rf {params.wdir}
             mkdir -p {params.wdir}
-            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.wdir}/out {params.wdir}
-            mv {params.wdir}/out.kff {output}
+            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.ofile} {params.wdir}
             rm -r {params.filel} {params.wdir}
             """
 
@@ -49,6 +51,7 @@ else:
         output: temp("results/{sample}/{sample}.kff")
         params:
             wdir="temp_kmc_{sample}",
+            ofile="results/{sample}/{sample}",
             filel="temp_kmc_filelist_{sample}.txt"
         threads: 8
         benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
@@ -59,8 +62,7 @@ else:
             echo {input.fq2} >> {params.filel}
             rm -rf {params.wdir}
             mkdir -p {params.wdir}
-            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.wdir}/out {params.wdir}
-            mv {params.wdir}/out.kff {output}
+            kmc -k29 -m64 -okff -t{threads} @{params.filel} {params.ofile} {params.wdir}
             rm -r {params.filel} {params.wdir}
             """
 
@@ -207,13 +209,14 @@ rule realign_bam:
         """
         rm -rf {params.tmpdir}
         mkdir -p {params.tmpdir}
-        java -Xmx28G -jar /opt/abra2/abra2.jar \
+        java -Xmx26G -jar /opt/abra2/abra2.jar \
           --targets {input.target_bed} \
           --in {input.bam} \
           --out {output} \
           --tmpdir {params.tmpdir} \
           --ref {input.ref} \
-          --threads {threads} 2> {log}
+          --threads {threads} \
+          --log warn 2> {log}
         rm -rf {params.tmpdir}
         """
 
@@ -281,25 +284,63 @@ rule qc_fastq:
     input:
         fq1=getfq1,
         fq2=getfq2,
-        fqt="results/{sample}/{sample}.trimmed.fq.gz",
-        adpt_tsv=config['adapters_tsv'],
+        adpt_tsv=config['adapters_tsv']
+    output: temp("results/{sample}/fastq_qc_raw.{sample}.zip")
+    params:
+        qcdir="temp_fastqc_raw.{sample}"
+    benchmark: 'benchmark/{sample}.qc_fastq_raw.benchmark.tsv'    
+    threads: 6
+    shell:
+        """
+        rm -rf {params.qcdir}
+        mkdir -p {params.qcdir}
+        fastqc --extract --delete -f fastq -t {threads} -o {params.qcdir} -a {input.adpt_tsv} {input.fq1} {input.fq2}
+        zip {output} {params.qcdir}/*
+        rm -r {params.qcdir}
+        """
+
+rule qc_trimmed_fastq:
+    input:
+        fq="results/{sample}/{sample}.trimmed.fq.gz",
+        adpt_tsv=config['adapters_tsv']
+    output: temp("results/{sample}/fastq_qc_trimmed.{sample}.zip")
+    params:
+        qcdir="temp_fastqc_trimmed.{sample}"
+    benchmark: 'benchmark/{sample}.qc_fastq_trimmed.benchmark.tsv'    
+    threads: 6
+    shell:
+        """
+        rm -rf {params.qcdir}
+        mkdir -p {params.qcdir}
+        fastqc --extract --delete -f fastq -t {threads} -o {params.qcdir} -a {input.adpt_tsv} {input.fq}
+        zip {output} {params.qcdir}/*
+        rm -r {params.qcdir}
+        """
+
+rule merge_qc_fastq:
+    input:
+        zip_raw="results/{sample}/fastq_qc_raw.{sample}.zip",
+        zip_trim="results/{sample}/fastq_qc_trimmed.{sample}.zip",
         stats_synt="results/{sample}/{sample}.statsSYNT.txt",
         synt_fq1="results/{sample}/{sample}.synt.1.fq.gz",
         synt_fq2="results/{sample}/{sample}.synt.2.fq.gz"
     output: tempCond("results/{sample}/fastq_qc.{sample}.zip")
     params:
         qcdir="temp_fastqc.{sample}",
-        stats_synt="temp_fastqc.{sample}/{sample}.statsSYNT.txt",
-        synt_fq1="temp_fastqc.{sample}/{sample}.synt.1.fq.gz",
-        synt_fq2="temp_fastqc.{sample}/{sample}.synt.2.fq.gz"
-    benchmark: 'benchmark/{sample}.qc_fastq.benchmark.tsv'    
-    threads: 4
+        qcdir_raw="temp_fastqc_raw.{sample}",
+        qcdir_trim="temp_fastqc_trimmed.{sample}"
+    benchmark: 'benchmark/{sample}.merge_qc_fastq.benchmark.tsv'
+    localrule: True
+    threads: 1
     shell:
         """
         rm -rf {params.qcdir}
         mkdir -p {params.qcdir}
-        fastqc --extract --delete -f fastq -t {threads} -o {params.qcdir} -a {input.adpt_tsv} {input.fq1} {input.fq2} {input.fqt}
+        unzip {input.zip_raw}
+        cp {params.qcdir_raw}/*html {params.qcdir}/
+        unzip {input.zip_trim}
+        cp {params.qcdir_trim}/*html {params.qcdir}/
         cp {input.stats_synt} {input.synt_fq1} {input.synt_fq2} {params.qcdir}/
-        zip {output.qc_zip} {params.qcdir}/*
-        rm -r {params.qcdir}
+        zip {output} {params.qcdir}/*
+        rm -r {params.qcdir} {params.qcdir_raw} {params.qcdir_trim}
         """
