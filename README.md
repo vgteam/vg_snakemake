@@ -1,5 +1,5 @@
 This repository contains a [Snakemake](https://snakemake.readthedocs.io/en/stable/index.html) workflow for the [vg toolkit](https://github.com/vgteam/vg).
-With it, you can index pangenome, map short reads to the graph and call small variants.
+With it, you can index pangenome, map short reads to the graph, call small variants and genotype structural variants.
 
 ## Prepare pangenome indexes
 

@@ -242,9 +242,7 @@ else:
             fq1=getfq1,
             fq2=getfq2,
             gaf="results/{sample}/{sample}.{graph}.gaf.gz"
-        output:
-            fq1=tempCond("results/{sample}/{sample}.{graph}.unmapped.1.fq.gz"),
-            fq2=tempCond("results/{sample}/{sample}.{graph}.unmapped.2.fq.gz")
+        output: tempCond("results/{sample}/{sample}.{graph}.unmapped.fq.gz")
         params:
             reads="temp.{sample}.{graph}.unmapped.reads.txt"
         threads: 1
@@ -252,8 +250,7 @@ else:
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
-            seqtk subseq {input.fq1} {params.reads} | gzip > {output.fq1}
-            seqtk subseq {input.fq2} {params.reads} | gzip > {output.fq2}   
+            seqtk mergepe {input.fq1} {input.fq2} | seqtk subseq - {params.reads} | gzip > {output}
             rm {params.reads}
             """
     
@@ -343,4 +340,23 @@ rule merge_qc_fastq:
         cp {input.stats_synt} {input.synt_fq1} {input.synt_fq2} {params.qcdir}/
         zip {output} {params.qcdir}/*
         rm -r {params.qcdir} {params.qcdir_raw} {params.qcdir_trim}
+        """
+
+rule cram_to_fastq:
+    input:
+        cram=getcram,
+        ref=config['cram_ref']
+    output:
+        fq1=temp('results/{sample}/{sample}.1.fastq.gz'),
+        fq2=temp('results/{sample}/{sample}.2.fastq.gz')
+    container: "docker://quay.io/jmonlong/freebayes-samtools-vg:1.2.0_1.10.0_1.53.0"
+    threads: 4
+    params:
+        half_threads=lambda wildcards, threads: max(1, int(threads/2)),
+        tmp_o='temp.cram_to_fastq.{sample}.o.fq.gz',
+        tmp_s='temp.cram_to_fastq.{sample}.s.fq.gz'
+    shell:
+        """
+        samtools collate -@ {params.half_threads} --reference {input.ref} -Ouf {input.cram} | samtools fastq -@ {params.half_threads} -1 {output.fq1} -2 {output.fq2} -0 {params.tmp_o} -s {params.tmp_s} -c 1 -N -
+        rm -f {params.tmp_o} {params.tmp_s}
         """

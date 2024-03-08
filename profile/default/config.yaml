@@ -17,6 +17,7 @@ set-threads:
   - surject_reads_tmp=24
   - prepare_target_regions=8
   - realign_bam=16
+  - cram_to_fastq=4
   - trim_fastq=4
   - qc_fastq=6
   - qc_trimmed_fastq=6
@@ -70,6 +71,8 @@ set-resources:
   - realign_bam:runtime=24h
   - trim_fastq:mem=16GB
   - trim_fastq:runtime=6h
+  - cram_to_fastq:mem=8GB
+  - cram_to_fastq:runtime=12h
   - qc_fastq:mem=16GB
   - qc_fastq:runtime=12h
   - qc_trimmed_fastq:mem=16GB

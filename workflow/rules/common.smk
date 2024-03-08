@@ -23,6 +23,10 @@ if config['indel_realign_reads']:
 if 'use_gpu' not in config:
     config['use_gpu'] = False
 
+# should we try to use GPU? by default, no
+if 'cram_ref' not in config:
+    config['cram_ref'] = 'reference_for_CRAM.fasta'
+
 if 'max_samps' in config:
     config['max_samps'] = int(config['max_samps'])
 
@@ -37,17 +41,27 @@ if 'sample_tsv' in config:
 # rules to either get the files specified by the user, or path that will trigger rules to make them
 def getfq1(wildcards):
     # complain if sample not in the file
-    if wildcards.sample not in info.fq1:
-        print("Error: " + wildcards.sample + ' not in ' + config['sample_tsv'])
+    if 'fq1' not in info or wildcards.sample not in info.fq1:
+        # print("Error: " + wildcards.sample + ' not in ' + config['sample_tsv'])
+        return 'results/{sample}/{sample}.1.fastq.gz'
     # return fastq path for sample
     return info.fq1[wildcards.sample]
 
 def getfq2(wildcards):
     # complain if sample not in the file
-    if wildcards.sample not in info.fq2:
-        print("Error: " + wildcards.sample + ' not in ' + config['sample_tsv'])
+    if 'fq2' not in info or wildcards.sample not in info.fq2:
+        # print("Error: " + wildcards.sample + ' not in ' + config['sample_tsv'])
+        return 'results/{sample}/{sample}.2.fastq.gz'
     # return fastq path for sample
     return info.fq2[wildcards.sample]
+
+def getcram(wildcards):
+    # complain if sample not in the file
+    if 'cram' not in info or wildcards.sample not in info.cram:
+        # print("Error: " + wildcards.sample + ' not in ' + config['sample_tsv'])
+        return 'results/{sample}/{sample}.cram'
+    # return fastq path for sample
+    return info.cram[wildcards.sample]
 
 def getgbz():
     if 'gbz' in config:
