@@ -1,5 +1,7 @@
-gfa: "testdata/mhc.gfa"
 graph: 'mhc-test'
+gbz: "testdata/mhc.gbz"
+hapl: "testdata/mhc.hapl"
+ref_fa: "testdata/mhc.ref.fa"
 ref_paths_list: 'testdata/mhc.paths_list.txt'
 seqn_prefix: "MHC-GRCh38#0#"
 sample: "samp1"

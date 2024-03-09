@@ -1,9 +1,10 @@
-gfa: "testdata/mhc.gfa"
 graph: 'mhc-test'
+gbz: "testdata/mhc.gbz"
+hapl: "testdata/mhc.hapl"
 ref_paths_list: 'testdata/mhc.paths_list.txt'
 seqn_prefix: "MHC-GRCh38#0#"
-sample: "samp1"
+ref_fa: "testdata/mhc.ref.fa"
 sample_tsv: "config/sample_info.tsv"
+sample: "samp1"
 gt_min_var_len: 30
 indel_realign_reads: True
-rm_all_on_success: False

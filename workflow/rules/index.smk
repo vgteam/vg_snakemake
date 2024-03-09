@@ -7,7 +7,7 @@ rule convert_gfa_to_gbz:
     shell: "vg gbwt --num-jobs {threads} --gbz-format -g {output} -G {input}"
 
 rule index_r_fullpg:
-    input: 'results/pg/{graph}.gbz'
+    input: getgbz()
     output: 'results/pg/{graph}.ri'
     threads: 8
     benchmark: 'benchmark/{graph}.index_r.benchmark.tsv'
@@ -15,7 +15,7 @@ rule index_r_fullpg:
     shell: "vg gbwt -p --num-threads {threads} -r {output} -Z {input}"
 
 rule index_distance_fullpg:
-    input: 'results/pg/{graph}.gbz'
+    input: getgbz()
     output: 'results/pg/{graph}.dist'
     benchmark: 'benchmark/{graph}.index_distance.benchmark.tsv'
     container: "docker://quay.io/vgteam/vg:v1.52.0"
@@ -23,7 +23,7 @@ rule index_distance_fullpg:
 
 rule index_haplotype_kmers:
     input:
-        gbz='results/pg/{graph}.gbz',
+        gbz=getgbz(),
         dist='results/pg/{graph}.dist',
         r='results/pg/{graph}.ri'
     output: "results/pg/{graph}.hapl"
@@ -37,14 +37,6 @@ rule index_haplotype_kmers:
         --subchain-length 10000 -t {threads} \
         -d {input.dist} -r {input.r} -H {output} {input.gbz}
         """
-
-rule index_snarls:
-    input: 'results/pg/{graph}.gbz'
-    output: 'results/pg/{graph}.snarls'
-    threads: 2
-    benchmark: 'benchmark/{graph}.index_snarls.benchmark.tsv'
-    container: "docker://quay.io/vgteam/vg:v1.52.0"
-    shell: "vg snarls -T -t {threads} {input} > {output}"
 
 rule index_distance:
     input: "results/{sample}/{graph}.sample_pg.{sample}.gbz"
@@ -87,16 +79,13 @@ rule extract_ref_fasta:
 rule index_fasta:
     input: getref()
     output:
-        ref_idx="results/pg/{graph}.ref.fa.fai",
-        dict="results/pg/{graph}.ref.dict"
-    container: "docker://quay.io/cmarkello/samtools_picard@sha256:e484603c61e1753c349410f0901a7ba43a2e5eb1c6ce9a240b7f737bba661eb4"
+        ref_idx=getrefidx(),
+        dict=getrefdict()
+    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
     shell:
         """
-        samtools faidx {input}
-        # Save a reference copy by making the dict now
-        java -jar /usr/picard/picard.jar CreateSequenceDictionary \
-          R={input} \
-          O={output.dict}
+        samtools faidx -o {output.ref_idx} {input}
+        picard CreateSequenceDictionary R={input} O={output.dict}
         """
 
 rule index_bam:

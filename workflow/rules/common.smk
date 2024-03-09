@@ -1,6 +1,6 @@
 import pandas as pd
 
-if 'sample' in config and config['sample'] is None:
+if 'sample1' in config and config['sample'] is None:
     config['sample'] = []
 
 # parse sample list: if specified and one item, try to split at white spaces
@@ -8,14 +8,15 @@ if 'sample' in config and not isinstance(config['sample'], list):
     config['sample'] = config['sample'].split(' ')
 
 # init config to avoid errors
-for cc in ['sample', 'refsynt_fa', 'adapters_fa', 'adapters_tsv']:
+for cc in ['sample', 'refsynt_fa', 'adapters_fa', 'adapters_tsv',
+           'gfa', 'seqn_prefix']:
     if cc not in config:
         config[cc] = []
 
 # set which bam should be produced based on if indel realignment is on
 # default is to use directly surjected reads
 config['bam_mode'] = 'surj'
-if config['indel_realign_reads']:
+if 'indel_realign_reads' in config and config['indel_realign_reads']:
     # if indel realignment is on, use surjected reads that are then realigned
     config['bam_mode'] = 'surj_realn'
 
@@ -78,12 +79,6 @@ def gethapl():
     else:
         return "results/pg/{graph}.hapl"
 
-def getsnarls():
-    if 'snarls' in config:
-        return config['snarls']
-    else:
-        return "results/pg/{graph}.snarls"
-
 def getref():
     if 'ref_fa' in config:
        return config['ref_fa']
@@ -91,14 +86,19 @@ def getref():
         return "results/pg/{graph}.ref.fa"
 
 def getrefidx():
-    if 'ref_fa_idx' in config:
-       return config['ref_fa_idx']
+    if 'ref_fa' in config:
+       return config['ref_fa'] + '.fai'
     else:
         return "results/pg/{graph}.ref.fa.fai"
 
 def getrefdict():
-    if 'ref_fa_dict' in config:
-       return config['ref_fa_dict']
+    if 'ref_fa' in config:
+        ref_fa = config['ref_fa']
+        if ref_fa.endswith('.fa'):
+            ref_dict = ref_fa[:-3] + '.dict'
+        if ref_fa.endswith('.fasta'):
+            ref_dict = ref_fa[:-6] + '.dict'
+        return ref_dict
     else:
         return "results/pg/{graph}.ref.dict"
 

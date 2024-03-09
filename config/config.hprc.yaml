@@ -1,10 +1,8 @@
+graph: 'hprc-v1.1-mc-grch38'
 gbz: "hprc-v1.1-mc-grch38.gbz"
 hapl: "hprc-v1.1-mc-grch38.hapl"
-snarls: "hprc-v1.1-mc-grch38.snarls"
-graph: 'hprc-v1.1-mc-grch38'
-ref_paths_list: 'hprc-v1.1-mc-grch38.paths_list.txt'
+ref_paths_list: 'config/hprc-v1.1-mc-grch38.paths_list.txt'
 seqn_prefix: "GRCh38#0#"
-sample: "samp1"
-sample_tsv: "config/sample_info.tsv"
 gt_min_var_len: 30
 indel_realign_reads: True
+sample_tsv: "config/sample_info.tsv"

@@ -121,8 +121,7 @@ rule surject_reads:
         paths_list=config['ref_paths_list'],
         gaf="results/{sample}/{sample}.{graph}.gaf.gz",
         ref=getref(),
-        ref_idx=getrefidx(),
-        rename_script="workflow/scripts/rename_bam_stream.py"
+        ref_idx=getrefidx()
     output: tempCond("results/{sample}/{sample}.{graph}.surj.bam")
     priority: 3
     params:
@@ -132,7 +131,7 @@ rule surject_reads:
         seqn_prefix=config['seqn_prefix']
     threads: 8
     benchmark: 'benchmark/{sample}.{graph}.surject_reads.benchmark.tsv'
-    container: "docker://quay.io/jmonlong/freebayes-samtools-vg:1.2.0_1.10.0_1.53.0"
+    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
     shell:
         """
         rm -rf {params.sort_dir}
@@ -147,7 +146,7 @@ rule surject_reads:
         --read-group "ID:1 LB:lib1 SM:{wildcards.sample} PL:illumina PU:unit1" \
         --prune-low-cplx --interleaved --max-frag-len 3000 \
         {input.gaf} | \
-        python {input.rename_script} -f {input.ref_idx} -p "{params.seqn_prefix}" | \
+        python /opt/scripts/rename_bam_stream.py -f {input.ref_idx} -p "{params.seqn_prefix}" | \
         bamleftalign --fasta-reference {input.ref} --compressed | \
         samtools sort -m 4G --threads {params.sort_threads} -T {params.sort_dir}/temp \
         -O BAM > {output}
@@ -229,7 +228,8 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
         params:
             reads="temp.{sample}.{graph}.unmapped.reads.txt"
         threads: 1
-        benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'    
+        benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'
+        container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
@@ -247,6 +247,7 @@ else:
             reads="temp.{sample}.{graph}.unmapped.reads.txt"
         threads: 1
         benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'    
+        container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
@@ -349,7 +350,7 @@ rule cram_to_fastq:
     output:
         fq1=temp('results/{sample}/{sample}.1.fastq.gz'),
         fq2=temp('results/{sample}/{sample}.2.fastq.gz')
-    container: "docker://quay.io/jmonlong/freebayes-samtools-vg:1.2.0_1.10.0_1.53.0"
+    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
     threads: 4
     params:
         half_threads=lambda wildcards, threads: max(1, int(threads/2)),
