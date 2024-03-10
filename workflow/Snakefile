@@ -32,17 +32,34 @@ rule prepare_unmapped_reads:
     input:
         expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz', graph=config['graph'], sample=config['sample'])
 
-rule all:
-    input:
-        expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz', graph=config['graph'], sample=config['sample']),
-        expand('results/{sample}/{sample}.{graph}.gaf.gz', graph=config['graph'], sample=config['sample']),
-        expand('results/{sample}/{graph}.sample_pg.{sample}.gbz', graph=config['graph'], sample=config['sample']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.bam', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.bam.bai', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.g.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta_candidates.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz', graph=config['graph'], sample=config['sample'], minlen=config['gt_min_var_len']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.coverage.q.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
-        expand('results/{sample}/{sample}.{graph}.{realn}.coverage.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode'])
+if config['sort_gam']:
+    rule all:
+        input:
+            expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{sample}.{graph}.gaf.gz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{sample}.{graph}.sorted.gam', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{graph}.sample_pg.{sample}.gbz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.bam', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.bam.bai', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.g.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta_candidates.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz', graph=config['graph'], sample=config['sample'], minlen=config['gt_min_var_len']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.coverage.q.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.coverage.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode'])
+else:
+    rule all:
+        input:
+            expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{sample}.{graph}.gaf.gz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{graph}.sample_pg.{sample}.gbz', graph=config['graph'], sample=config['sample']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.bam', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.bam.bai', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.g.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta_candidates.vcf.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz', graph=config['graph'], sample=config['sample'], minlen=config['gt_min_var_len']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.coverage.q.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode']),
+            expand('results/{sample}/{sample}.{graph}.{realn}.coverage.bed.gz', graph=config['graph'], sample=config['sample'], realn=config['bam_mode'])

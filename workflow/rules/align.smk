@@ -363,3 +363,18 @@ rule cram_to_fastq:
         samtools collate -@ {params.half_threads} --reference {input.ref} -Ouf {input.cram} | samtools fastq -@ {params.half_threads} -1 {output.fq1} -2 {output.fq2} -0 {params.tmp_o} -s {params.tmp_s} -c 1 -N - 2> {log}
         rm -f {params.tmp_o} {params.tmp_s}
         """
+
+rule gaf_to_sorted_gam:
+    input:
+        gaf="results/{sample}/{sample}.{graph}.gaf.gz",
+        gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz"
+    output:
+        gam="results/{sample}/{sample}.{graph}.sorted.gam",
+        gai="results/{sample}/{sample}.{graph}.sorted.gam.gai"
+    threads: 4
+    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+    benchmark: 'benchmark/{sample}.{graph}.gaf_to_sorted_gam.benchmark.tsv'
+    shell:
+        """
+        vg convert -F {input.gaf} {input.gbz} | vg gamsort -t {threads} -i {output.gai} - > {output.gam}
+        """

@@ -24,6 +24,10 @@ if 'indel_realign_reads' in config and config['indel_realign_reads']:
 if 'use_gpu' not in config:
     config['use_gpu'] = False
 
+# should we produce sorted GAM files? by default, no
+if 'sort_gam' not in config:
+    config['sort_gam'] = False
+
 # should we try to use GPU? by default, no
 if 'cram_ref' not in config:
     config['cram_ref'] = 'reference_for_CRAM.fasta'
