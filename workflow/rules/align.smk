@@ -352,12 +352,14 @@ rule cram_to_fastq:
         fq2=temp('results/{sample}/{sample}.2.fastq.gz')
     container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
     threads: 4
+    benchmark: 'benchmark/{sample}.cram_to_fastq.benchmark.tsv'
+    log: "logs/{sample}.cram_to_fastq.log"
     params:
         half_threads=lambda wildcards, threads: max(1, int(threads/2)),
         tmp_o='temp.cram_to_fastq.{sample}.o.fq.gz',
         tmp_s='temp.cram_to_fastq.{sample}.s.fq.gz'
     shell:
         """
-        samtools collate -@ {params.half_threads} --reference {input.ref} -Ouf {input.cram} | samtools fastq -@ {params.half_threads} -1 {output.fq1} -2 {output.fq2} -0 {params.tmp_o} -s {params.tmp_s} -c 1 -N -
+        samtools collate -@ {params.half_threads} --reference {input.ref} -Ouf {input.cram} | samtools fastq -@ {params.half_threads} -1 {output.fq1} -2 {output.fq2} -0 {params.tmp_o} -s {params.tmp_s} -c 1 -N - 2> {log}
         rm -f {params.tmp_o} {params.tmp_s}
         """

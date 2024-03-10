@@ -61,10 +61,14 @@ set-resources:
   - count_kmer_in_reads:runtime=1h
   - map_short_reads_giraffe:mem=64GB
   - map_short_reads_giraffe:runtime=6h
+  - extract_unmapped_reads:mem=6GB
+  - extract_unmapped_reads:runtime=3h
   - sample_haplotypes:mem=40GB
   - sample_haplotypes:runtime=1h
   - surject_reads:mem=32GB
   - surject_reads:runtime=24h
+  - surject_reads_tmp:mem=32GB
+  - surject_reads_tmp:runtime=24h
   - prepare_target_regions:mem=16GB
   - prepare_target_regions:runtime=3h
   - realign_bam:mem=32GB
