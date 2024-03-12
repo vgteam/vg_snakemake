@@ -112,3 +112,21 @@ if 'rm_all_on_success' in config and config['rm_all_on_success']:
 else:
     def tempCond(filen):
         return (filen)
+
+
+# default containers
+docker_imgs = {}
+docker_imgs['kmc'] = "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
+docker_imgs['vg'] = "docker://quay.io/vgteam/vg:v1.52.0"
+docker_imgs['vgwork'] = 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+docker_imgs['gatk_bedtools'] = "docker://quay.io/jmonlong/gatk-bedtools:3.8.1_2.21.0"
+docker_imgs['abra'] = 'docker://quay.io/adamnovak/dceoy-abra2@sha256:43d09d1c10220cfeab09e2763c2c5257884fa4457bcaa224f4e3796a28a24bba'
+docker_imgs['deepvariant'] = "docker://google/deepvariant:1.5.0"
+docker_imgs['deepvariant_gpu'] = "docker://google/deepvariant:1.5.0-gpu"
+docker_imgs['manta'] = "docker://quay.io/jmonlong/manta:main"
+docker_imgs['mosdepth'] = "docker://quay.io/biocontainers/mosdepth:0.3.6--hd299d5a_0"
+
+# if the user specified containers, change the default images
+if 'container' in config:
+    for task in config['container']:
+        docker_imgs[task] = config['container'][task]

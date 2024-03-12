@@ -10,7 +10,7 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
             filel="temp_kmc_filelist_{sample}.txt"
         threads: 8
         benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
-        container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
+        container: docker_imgs['kmc']
         shell:
             """
             echo {input.fq} > {params.filel}
@@ -31,7 +31,7 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
         threads: 8
         priority: 2
         benchmark: 'benchmark/{sample}.{graph}.map_short_reads_giraffe.benchmark.tsv'
-        container: "docker://quay.io/vgteam/vg:v1.52.0"
+        container: docker_imgs['vg']
         shell:
             """
             vg giraffe --progress \
@@ -55,7 +55,7 @@ else:
             filel="temp_kmc_filelist_{sample}.txt"
         threads: 8
         benchmark: 'benchmark/{sample}.count_kmer_in_reads.benchmark.tsv'
-        container: "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
+        container: docker_imgs['kmc']
         shell:
             """
             echo {input.fq1} > {params.filel}
@@ -78,7 +78,7 @@ else:
         threads: 8
         priority: 2
         benchmark: 'benchmark/{sample}.{graph}.map_short_reads_giraffe.benchmark.tsv'
-        container: "docker://quay.io/vgteam/vg:v1.52.0"
+        container: docker_imgs['vg']
         shell:
             """
             vg giraffe --progress \
@@ -100,7 +100,7 @@ rule sample_haplotypes:
     threads: 8
     priority: 1
     benchmark: 'benchmark/{sample}.{graph}.sample_haplotypes.benchmark.tsv'
-    container: "docker://quay.io/vgteam/vg:v1.52.0"
+    container: docker_imgs['vg']
     shell:
         """
         vg haplotypes -v 2 -t {threads} \
@@ -131,7 +131,7 @@ rule surject_reads:
         seqn_prefix=config['seqn_prefix']
     threads: 8
     benchmark: 'benchmark/{sample}.{graph}.surject_reads.benchmark.tsv'
-    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+    container: docker_imgs['vgwork']
     shell:
         """
         rm -rf {params.sort_dir}
@@ -165,7 +165,7 @@ rule prepare_target_regions:
         bam="results/{sample}/temp_{sample}.{graph}.surj.bam",
         bai="results/{sample}/temp_{sample}.{graph}.surj.bam.bai"
     output: temp("results/{sample}/{sample}.{graph}.realn_targets.bed")
-    container: "docker://quay.io/jmonlong/gatk-bedtools:3.8.1_2.21.0"
+    container: docker_imgs['gatk_bedtools']
     threads: 8
     priority: 4
     benchmark: "benchmark/{sample}.{graph}.prepare_target_regions.benchmark.tsv"
@@ -202,7 +202,7 @@ rule realign_bam:
     benchmark: "benchmark/{sample}.{graph}.realign_bam.benchmark.tsv"
     log: "logs/{sample}.{graph}.realign_bam.log"
     priority: 5
-    container: 'docker://quay.io/adamnovak/dceoy-abra2@sha256:43d09d1c10220cfeab09e2763c2c5257884fa4457bcaa224f4e3796a28a24bba'
+    container: docker_imgs['abra']
     threads: 8
     shell:
         """
@@ -229,7 +229,7 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
             reads="temp.{sample}.{graph}.unmapped.reads.txt"
         threads: 1
         benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'
-        container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+        container: docker_imgs['vgwork']
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
@@ -247,7 +247,7 @@ else:
             reads="temp.{sample}.{graph}.unmapped.reads.txt"
         threads: 1
         benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'    
-        container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+        container: docker_imgs['vgwork']
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
@@ -350,7 +350,7 @@ rule cram_to_fastq:
     output:
         fq1=temp('results/{sample}/{sample}.1.fastq.gz'),
         fq2=temp('results/{sample}/{sample}.2.fastq.gz')
-    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+    container: docker_imgs['vgwork']
     threads: 4
     benchmark: 'benchmark/{sample}.cram_to_fastq.benchmark.tsv'
     log: "logs/{sample}.cram_to_fastq.log"
@@ -372,7 +372,7 @@ rule gaf_to_sorted_gam:
         gam="results/{sample}/{sample}.{graph}.sorted.gam",
         gai="results/{sample}/{sample}.{graph}.sorted.gam.gai"
     threads: 4
-    container: 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+    container: docker_imgs['vgwork']
     benchmark: 'benchmark/{sample}.{graph}.gaf_to_sorted_gam.benchmark.tsv'
     shell:
         """

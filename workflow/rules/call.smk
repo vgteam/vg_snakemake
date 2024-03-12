@@ -7,7 +7,7 @@ rule pack:
     priority: 3
     benchmark: 'benchmark/{sample}.{graph}.pack.benchmark.tsv'
     log: 'logs/pack.{graph}.{sample}.log'
-    container: "docker://quay.io/vgteam/vg:v1.52.0"
+    container: docker_imgs['vg']
     shell: "vg pack -x {input.gbz} -a {input.gaf} -Q 5 -t {threads} -o {output} 2> {log}"
 
 rule vgcall:
@@ -19,7 +19,7 @@ rule vgcall:
     threads: 8
     priority: 4
     benchmark: 'benchmark/{sample}.{graph}.vgcall.minlen{minlen}.benchmark.tsv'
-    container: "docker://quay.io/vgteam/vg:v1.52.0"
+    container: docker_imgs['vg']
     shell:
         """
         RPATHS=""
@@ -43,7 +43,7 @@ rule dv_make_examples:
         dvdir="dv_{sample}_{graph}_{surj}"
     threads: 8
     priority: 6
-    container: "docker://google/deepvariant:1.5.0"
+    container: docker_imgs['deepvariant']
     benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_make_examples.benchmark.tsv'
     log: 'logs/{sample}.{graph}.{surj}.dv_make_examples.log'
     shell:
@@ -82,7 +82,7 @@ if config['use_gpu']:
             call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
             label="{sample}.{graph}.{surj}",
             dvdir="dv_{sample}_{graph}_{surj}"
-        container: "docker://google/deepvariant:1.5.0-gpu"
+        container: docker_imgs['deepvariant_gpu']
         threads: 8
         priority: 7
         benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_call_variants_gpu.benchmark.tsv'
@@ -120,7 +120,7 @@ else:
             call_tf="temp.call_variants_output.{sample}.{surj}.tfrecord.gz",
             label="{sample}.{graph}.{surj}",
             dvdir="dv_{sample}_{graph}_{surj}"
-        container: "docker://google/deepvariant:1.5.0"
+        container: docker_imgs['deepvariant']
         threads: 8
         priority: 7
         benchmark: 'benchmark/{sample}.{graph}.{surj}.dv_call_variants.benchmark.tsv'
@@ -156,7 +156,7 @@ rule sv_call_manta:
     params:
         tmp_dir='temp.manta.{sample}.{graph}.{surj}'
     threads: 8
-    container: "docker://quay.io/jmonlong/manta:main"
+    container: docker_imgs['manta']
     priority: 6
     benchmark: 'benchmark/{sample}.{graph}.{surj}.manta.benchmark.tsv'
     log: 'logs/{sample}.{graph}.{surj}.manta.log'
@@ -180,7 +180,7 @@ rule coverage_mosdepth:
     params:
         tmp_dir="temp.mosdepth.{sample}.{graph}.{surj}"
     threads: 4
-    container: "docker://quay.io/biocontainers/mosdepth:0.3.6--hd299d5a_0"
+    container: docker_imgs['mosdepth']
     priority: 6
     benchmark: 'benchmark/{sample}.{graph}.{surj}.coverage_mosdepth.benchmark.tsv'
     shell:
