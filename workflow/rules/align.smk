@@ -226,14 +226,15 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
             gaf="results/{sample}/{sample}.{graph}.gaf.gz"
         output: tempCond("results/{sample}/{sample}.{graph}.unmapped.fq.gz")
         params:
-            reads="temp.{sample}.{graph}.unmapped.reads.txt"
+            reads="temp.{sample}.{graph}.unmapped.reads.txt",
+            temp_pref="temp.{sample}.{graph}"
         threads: 1
         benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'
         container: docker_imgs['vgwork']
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
-            seqtk subseq {input.fq} {params.reads} | gzip > {output}
+            python /opt/scripts/subset_fastq_seqtk.py -f {input.fq} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
             rm {params.reads}
             """
 else:
@@ -244,14 +245,15 @@ else:
             gaf="results/{sample}/{sample}.{graph}.gaf.gz"
         output: tempCond("results/{sample}/{sample}.{graph}.unmapped.fq.gz")
         params:
-            reads="temp.{sample}.{graph}.unmapped.reads.txt"
+            reads="temp.{sample}.{graph}.unmapped.reads.txt",
+            temp_pref="temp.{sample}.{graph}"
         threads: 1
         benchmark: 'benchmark/{sample}.{graph}.extract_unmapped_reads.benchmark.tsv'    
         container: docker_imgs['vgwork']
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
-            seqtk mergepe {input.fq1} {input.fq2} | seqtk subseq - {params.reads} | gzip > {output}
+            python /opt/scripts/subset_fastq_seqtk.py -f {input.fq1} -F {input.fq2} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
             rm {params.reads}
             """
     
