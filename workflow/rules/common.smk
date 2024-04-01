@@ -1,6 +1,6 @@
 import pandas as pd
 
-if 'sample1' in config and config['sample'] is None:
+if 'sample' in config and config['sample'] is None:
     config['sample'] = []
 
 # parse sample list: if specified and one item, try to split at white spaces
