@@ -32,6 +32,10 @@ if 'sort_gam' not in config:
 if 'cram_ref' not in config:
     config['cram_ref'] = 'reference_for_CRAM.fasta'
 
+# how much memory to allocate with kmc
+if 'kmc_mem_gb' not in config:
+    config['kmc_mem_gb'] = 64
+    
 if 'max_samps' in config:
     config['max_samps'] = int(config['max_samps'])
 

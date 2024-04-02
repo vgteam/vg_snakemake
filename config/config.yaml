@@ -8,3 +8,4 @@ sample_tsv: "config/sample_info.tsv"
 sample: "samp1"
 gt_min_var_len: 30
 indel_realign_reads: True
+kmc_mem_gb: 2
