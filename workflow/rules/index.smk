@@ -21,6 +21,17 @@ rule index_distance_fullpg:
     container: docker_imgs['vg']
     shell: "vg index -j {output} {input}"
 
+rule index_minimizer_fullpg:
+    input:
+        gbz=getgbz(),
+        dist='results/pg/{graph}.dist'
+    threads: 8
+    output: 'results/pg/{graph}.min'
+    benchmark: 'benchmark/{graph}.index_minimizer.benchmark.tsv'
+    container: docker_imgs['vg']
+    shell: "vg minimizer -t {threads} -d {input.dist} -o {output} {input.gbz}"
+
+
 rule index_haplotype_kmers:
     input:
         gbz=getgbz(),
