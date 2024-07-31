@@ -1,0 +1,9 @@
+graph: 'mhc-test'
+gfa: "testdata/mhc.gfa"
+ref_paths_list: 'testdata/mhc.paths_list.txt'
+seqn_prefix: "MHC-GRCh38#0#"
+sample: "samp1"
+sample_tsv: "config/sample_info.cram.tsv"
+gt_min_var_len: 30
+indel_realign_reads: False
+cram_ref: "testdata/mhc.ref.fa"

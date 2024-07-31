@@ -1,0 +1,105 @@
+configfile: "config/config.yaml"
+
+include: "rules/common.smk"
+include: "rules/index.smk"
+include: "rules/align.smk"
+include: "rules/call.smk"
+
+## if we want to limit the number of samples being processed at a time (e.g. when disk space is limited)
+import os
+
+# fake dependencies: for a fastq file, which result file does it "depend" on
+bdep = {}
+SAMPS = config['sample']
+# result file from the other samples that will trigger a new one
+res_file = 'results/{{sample}}/{{sample}}.{graph}.{realn}.snv_indels.g.vcf.gz.transferred'.format(graph=config['graph'], realn=config['bam_mode'])
+if 'max_samps' in config and len(config['sample']) > config['max_samps']:
+    # find which samples need to be processed
+    SAMPS = []
+    for samp in config['sample']:
+        if not os.path.isfile(res_file.format(sample=samp)):
+            SAMPS.append(samp)
+    # force dependencies 
+    cur_samps = []
+    for sampii, samp in enumerate(SAMPS):
+        if sampii < config['max_samps']:
+            # first sample don't depend on anything
+            bdep[info.fq1[samp]] = ''
+            bdep[info.fq2[samp]] = ''            
+        else:
+            # save dependency and replace in list
+            psamp = cur_samps.pop(0)
+            bdep[info.fq1[samp]] = res_file.format(sample=psamp)
+            bdep[info.fq2[samp]] = res_file.format(sample=psamp)
+        cur_samps.append(samp)
+
+
+## input GFA from config['gfa']?
+rule index_pangenome:
+    input:
+        expand('results/pg/{graph}.{ext}', graph=config['graph'], ext=['gbz', 'dist', 'min'])
+
+## input from columns 'fq1' and 'fq2' of the TSV specified by config['sample_tsv'] (and for samples listed in config['sample'])
+rule map_short_reads:
+    input:
+        expand('results/{sample}.{sample}.{graph}.gaf.gz', graph=config['graph'], sample=SAMPS)
+
+## input from columns 'fq1' and 'fq2' of the TSV specified by config['sample_tsv'] (and for samples listed in SAMPS)
+rule call_small_variants_from_short_reads:
+    input:
+        expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.vcf.gz', graph=config['graph'], sample=SAMPS, realn=config['bam_mode'])
+
+rule genotype_variants_from_short_reads:
+    input:
+        expand('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz', graph=config['graph'], sample=SAMPS, minlen=config['gt_min_var_len'])
+
+rule call_structural_variants_from_short_reads:
+    input:
+        expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta.vcf.gz', graph=config['graph'], sample=SAMPS, realn=config['bam_mode'])
+
+rule prepare_unmapped_reads:
+    input:
+        expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz', graph=config['graph'], sample=SAMPS)
+
+rule all:
+    input:
+        expand('results/{sample}/fastq_qc.{sample}.zip.transferred', sample=SAMPS),
+        expand('results/{sample}/{sample}.{graph}.unmapped.fq.gz.transferred', graph=config['graph'], sample=SAMPS),
+        expand('results/{sample}/{sample}.{graph}.gaf.gz.transferred', graph=config['graph'], sample=SAMPS),
+        expand('results/{sample}/{graph}.sample_pg.{sample}.gbz.transferred', graph=config['graph'], sample=SAMPS),
+        expand('results/{sample}/{sample}.{graph}.{realn}.bam.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.bam.bai.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.vcf.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.snv_indels.g.vcf.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta.vcf.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.sv_manta_candidates.vcf.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz.transferred', graph=config['graph'], sample=SAMPS, minlen=config['gt_min_var_len']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.coverage.q.bed.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode']),
+        expand('results/{sample}/{sample}.{graph}.{realn}.coverage.bed.gz.transferred', graph=config['graph'], sample=SAMPS, realn=config['bam_mode'])
+
+# transfer rules
+rule save_to_local_storage:
+    input: 'results/{sample}/{file}'
+    output: 'results/{sample}/{file}.transferred'
+    localrule: True
+    priority: 100
+    shell:
+        """
+        python3 transfer.run_genotoul.py -r upload -g {input} -l {input}
+        """
+
+def condstart(wildcards):
+    fqfile = 'fastqs/{}'.format(wildcards.filen)
+    if fqfile in bdep and bdep[fqfile] != '':
+        return (bdep[fqfile])
+    else:
+        return ([])
+
+rule get_fq:
+    input: condstart
+    output: temp('fastqs/{filen}')
+    localrule: True
+    shell:
+        """
+        python3 transfer.run_genotoul.py -r download -g {output} -l {output}
+        """

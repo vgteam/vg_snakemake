@@ -1,49 +1,54 @@
-## Test on a small dataset
+## Small pangenome for the MHC region
 
-We use the rules from the file in the repo's root:
+Built with Minigraph-Cactus following [those instructions](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/pangenome.md#mhc-graph).
+We just decreased the number of haplotypes to 10 to speed up construction.
 
-```
-ln -s ./Snakefile .
-```
-
-### Splitting reads in chunks
-
-``` 
-snakemake --configfile config.testdata.yaml -p genotype
-
-## Diagrams of the jobs/rules/files
-snakemake --configfile config.testdata.yaml --dag genotype | dot -Tsvg > ../imgs/construct-map-geno-dag.svg
-snakemake --configfile config.testdata.yaml --filegraph genotype | dot -Tsvg > ../imgs/construct-map-geno-filegraph.svg
-snakemake --configfile config.testdata.yaml --rulegraph genotype | dot -Tsvg > ../imgs/construct-map-geno-rulegraph.svg
-
-## Clean up
-snakemake --configfile config.testdata.yaml -p cleanall
-```
-
-### Mapping all reads in one job
-
-Some times we might want to use only one job to map all the reads instead of splitting them in chunks.
-To do that, set *nb_split_reads=0*.
-
-``` 
-snakemake --configfile config.testdata.yaml -p genotype --config nb_split_reads=0
-
-## Clean up
-snakemake --configfile config.testdata.yaml -p cleanall
+```sh
+# download the sequences
+wget -q https://zenodo.org/record/6617246/files/MHC-61.agc
+# make the seqfile
+mkdir -p mhc-fa ; rm -f mhc-seqfile.txt
+for s in $(agc listset MHC-61.agc | head); do printf "${s}\tmhc-fa/${s}.fa\n" >> mhc-seqfile.txt; agc getset MHC-61.agc $s > mhc-fa/${s}.fa; done
+# (Optional) clean up the sample names. if you don't do this, adjust --reference accordingly below
+sed -i mhc-seqfile.txt -e 's/^MHC-00GRCh38/MHC-GRCh38/g' -e 's/^MHC-CHM13.0/MHC-CHM13/g'
+# (Optional) clean up the contig names (replacing numbers with "MHC")
+for f in mhc-fa/*.fa; do sed -i ${f} -e 's/#0/#MHC/g' -e 's/#1/#MHC/g' -e 's/#2/#MCH/g'; done
+## run Minigraph-Cactus, eventually within docker container
+## > docker run -it -v `pwd`:/app -w /app -u `id -u $USER` quay.io/comparative-genomics-toolkit/cactus:v2.6.13
+cactus-pangenome ./js ./mhc-seqfile.txt --outDir mhc-pg --outName mhc --reference MHC-GRCh38 --mapCores 1
+cp mhc-pg/mhc.gfa.gz mhc.gfa.gz
 ```
 
-### Giraffe mapper
+Prepare a file with the list of reference path names:
 
-The new and faster mapper uses different indexes.
+```sh
+echo MHC-GRCh38 > mhc.paths_list.txt
+```
 
-``` 
-snakemake --configfile config.testdata.yaml -p genotype
+Short reads were simulated from the pangenome with:
 
-## Diagrams of the jobs/rules/files
-snakemake --configfile config.testdata.yaml --dag genotype --config mapper="gaffe" | dot -Tsvg > ../imgs/construct-map-geno-dag.svg
-snakemake --configfile config.testdata.yaml --filegraph genotype --config mapper="gaffe" | dot -Tsvg > ../imgs/construct-map-geno-filegraph.svg
-snakemake --configfile config.testdata.yaml --rulegraph genotype --config mapper="gaffe" | dot -Tsvg > ../imgs/construct-map-geno-rulegraph.svg
+```sh
+vg gbwt -o mhc.gbwt -g mhc.gg -Z mhc.gbz
+vg sim -x mhc.gbz -l 150 -n 150000 -I -p 400 -v 20 -e .002 -i .00001 -m MHC-HG00438 -g mhc.gbwt -a | vg view -aX - > samp1.fastq
+seqtk seq samp1.fastq -1 | awk '{gsub("_1$", ""); print $0}' | gzip > samp1_1.fastq.gz
+seqtk seq samp1.fastq -2 | awk '{gsub("_2$", ""); print $0}' | gzip > samp1_2.fastq.gz
+```
 
-## Clean up
-snakemake --configfile config.testdata.yaml -p cleanall --config mapper="gaffe" 
+Test files: 
+
+- `mhc.gfa.gz`: gzipped GFA file
+- `mhc.gbz`: GBZ pangenome index 
+- `mhc.min`: minimizer index for vg giraffe
+- `mhc.dist`: distance index for vg giraffe
+- `mhc.paths_list.txt`: text file listing the reference paths' names
+- `samp1_1.fastq.gz`: first short read of the pair (simulated)
+- `samp1_2.fastq.gz`: first short read of the pair (simulated)
+
+
+#### CRAM file
+
+Sometimes, we might want to use CRAM files as input.
+
+```sh
+samtools import -O CRAM -o samp1.cram samp1_1.fastq.gz samp1_2.fastq.gz
 ```
