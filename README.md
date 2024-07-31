@@ -11,7 +11,7 @@ If running the *all* rule, all the analysis listed above will be performed.
 Specific analysis can also be performed using dedicated rules described below. 
 Of note, the pipeline will automatically run the necessary steps for each analysis, which means, for example, that the read mapping will automatically be performed (if necessary) when using a variant calling rule.
 
-Note: for the older version of the Snakemake pipeline see the [vg_genotyping_2020](https://github.com/vgteam/vg_snakemake/tree/vg_genotyping_2020).
+Note: for the older version of the Snakemake pipeline see the [vg_genotyping_2020 branch](https://github.com/vgteam/vg_snakemake/tree/vg_genotyping_2020).
 
 ## Prepare pangenome indexes
 
