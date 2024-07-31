@@ -121,8 +121,8 @@ else:
 # default containers
 docker_imgs = {}
 docker_imgs['kmc'] = "docker://quay.io/biocontainers/kmc:3.2.1--hf1761c0_2"
-docker_imgs['vg'] = "docker://quay.io/vgteam/vg:v1.52.0"
-docker_imgs['vgwork'] = 'docker://quay.io/jmonlong/vg-work:1.53.0_v1'
+docker_imgs['vg'] = "docker://quay.io/vgteam/vg:v1.58.0"
+docker_imgs['vgwork'] = 'docker://quay.io/jmonlong/vg-work:1.58.0_v1'
 docker_imgs['gatk_bedtools'] = "docker://quay.io/jmonlong/gatk-bedtools:3.8.1_2.21.0"
 docker_imgs['abra'] = 'docker://quay.io/adamnovak/dceoy-abra2@sha256:43d09d1c10220cfeab09e2763c2c5257884fa4457bcaa224f4e3796a28a24bba'
 docker_imgs['deepvariant'] = "docker://google/deepvariant:1.5.0"

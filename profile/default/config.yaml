@@ -62,7 +62,7 @@ set-resources:
   - map_short_reads_giraffe:mem=64GB
   - map_short_reads_giraffe:runtime=6h
   - extract_unmapped_reads:mem=8GB
-  - extract_unmapped_reads:runtime=3h
+  - extract_unmapped_reads:runtime=12h
   - sample_haplotypes:mem=40GB
   - sample_haplotypes:runtime=1h
   - surject_reads:mem=42GB
