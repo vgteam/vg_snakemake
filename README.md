@@ -198,7 +198,16 @@ The workflow won't strip this sequence prefix from user-provided files.
 
 ## Recommendations to adapt the workflow to an HPC
 
-*Soon: how to use/specify envmodules, disable some containers*
+In practice, we can run one job (with very low resources) where we call the `snakemake` command and that will launch more jobs for each task.
+The minimal dependencies would be Python (with snakemake and pandas installed) and Singularity.
+Then, the `snakemake` command could look like:
+
+```sh
+snakemake --configfile my.config.yaml --slurm --profile profile/default --use-singularity -p all
+```
+
+In some cases, we might want to use tools already installed on the HPC, for example by loading "modules", instead of the singularity/docker containers.
+This is not implemented yet, but could be added if there is interest.
 
 ## Using GPUs
 
