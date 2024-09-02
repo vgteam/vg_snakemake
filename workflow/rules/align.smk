@@ -148,7 +148,7 @@ rule surject_reads:
         --read-group "ID:1 LB:lib1 SM:{wildcards.sample} PL:illumina PU:unit1" \
         --prune-low-cplx --interleaved --max-frag-len 3000 \
         {input.gaf} | \
-        python /opt/scripts/rename_bam_stream.py -f {input.ref_idx} -p "{params.seqn_prefix}" | \
+        python3 /opt/scripts/rename_bam_stream.py -f {input.ref_idx} -p "{params.seqn_prefix}" | \
         bamleftalign --fasta-reference {input.ref} --compressed | \
         samtools sort -m 4G --threads {params.sort_threads} -T {params.sort_dir}/temp \
         -O BAM > {output}
@@ -236,7 +236,7 @@ if len(config['refsynt_fa']) > 0 and len(config['adapters_fa']) > 0 and len(conf
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
-            python /opt/scripts/subset_fastq_seqtk.py -f {input.fq} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
+            python3 /opt/scripts/subset_fastq_seqtk.py -f {input.fq} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
             rm {params.reads}
             """
 else:
@@ -255,7 +255,7 @@ else:
         shell:
             """
             zcat {input.gaf} | awk '{{if($3=="*"){{print $1}}}}' | uniq > {params.reads}
-            python /opt/scripts/subset_fastq_seqtk.py -f {input.fq1} -F {input.fq2} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
+            python3 /opt/scripts/subset_fastq_seqtk.py -f {input.fq1} -F {input.fq2} -r {params.reads} -t {params.temp_pref} -c 10000000 | gzip > {output}
             rm {params.reads}
             """
     
