@@ -91,6 +91,11 @@ snakemake --configfile config/config.yaml -p genotype_variants_from_short_reads 
 
 If needed, the pangenome will be indexed and the reads mapped with the rules described above.
 
+Sometimes, we might want to genotype and report all variants sites, even if homozygous for the reference allele.
+For example, to merge VCFs for multiple samples.
+This mode can be enabled by setting `gt_ref` to `True` in the config (either in the `config.yaml` file, or `--config gt_ref=True` in the command line).
+If `gt_ref` is *true*, `vg call` will use the `-a` parameter to force reporting on every snarl.
+
 ### Run all the analysis described above
 
 ```
