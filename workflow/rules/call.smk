@@ -10,28 +10,48 @@ rule pack:
     container: docker_imgs['vg']
     shell: "vg pack -x {input.gbz} -a {input.gaf} -Q 5 -t {threads} -o {output} 2> {log}"
 
-rule vgcall:
-    input: 
-        gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
-        paths_list=config['ref_paths_list'],
-        pack='results/{sample}/{sample}.{graph}.pack'
-    output: tempCond('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz')
-    params:
-        gt_ref=lambda wilcards: '-a' if 'gt_ref' in config and config['gt_ref'] else ''
-    threads: 8
-    priority: 4
-    benchmark: 'benchmark/{sample}.{graph}.vgcall.minlen{minlen}.benchmark.tsv'
-    container: docker_imgs['vg']
-    shell:
-        """
-        RPATHS=""
-        for RP in `cat {input.paths_list}`
-        do
-        RPATHS=`echo "-p $RP $RPATHS"`
-        done
-        
-        vg call -t {threads} -k {input.pack} {params.gt_ref} -Az $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | gzip > {output}
-        """
+if 'gt_ref' in config and config['gt_ref']:
+    rule vgcall:
+        input: 
+            gbz=getgbz(),
+            paths_list=config['ref_paths_list'],
+            pack='results/{sample}/{sample}.{graph}.pack'
+        output: tempCond('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz')
+        threads: 8
+        priority: 4
+        benchmark: 'benchmark/{sample}.{graph}.vgcall.minlen{minlen}.benchmark.tsv'
+        container: docker_imgs['vg']
+        shell:
+            """
+            RPATHS=""
+            for RP in `cat {input.paths_list}`
+            do
+            RPATHS=`echo "-p $RP $RPATHS"`
+            done
+
+            vg call -t {threads} -k {input.pack} -aAz $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | gzip > {output}
+            """
+else:
+    rule vgcall:
+        input: 
+            gbz="results/{sample}/{graph}.sample_pg.{sample}.gbz",
+            paths_list=config['ref_paths_list'],
+            pack='results/{sample}/{sample}.{graph}.pack'
+        output: tempCond('results/{sample}/{sample}.{graph}.gt.minlen{minlen}.vcf.gz')
+        threads: 8
+        priority: 4
+        benchmark: 'benchmark/{sample}.{graph}.vgcall.minlen{minlen}.benchmark.tsv'
+        container: docker_imgs['vg']
+        shell:
+            """
+            RPATHS=""
+            for RP in `cat {input.paths_list}`
+            do
+            RPATHS=`echo "-p $RP $RPATHS"`
+            done
+
+            vg call -t {threads} -k {input.pack} -Az $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | gzip > {output}
+            """
 
 rule dv_make_examples:
     input:
