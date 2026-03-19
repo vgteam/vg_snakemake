@@ -29,7 +29,7 @@ if 'gt_ref' in config and config['gt_ref']:
             RPATHS=`echo "-p $RP $RPATHS"`
             done
 
-            vg call -t {threads} -k {input.pack} -aAz $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | gzip > {output}
+            vg call -t {threads} -k {input.pack} -aAz $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | bgzip > {output}
             """
 else:
     rule vgcall:
@@ -50,7 +50,7 @@ else:
             RPATHS=`echo "-p $RP $RPATHS"`
             done
 
-            vg call -t {threads} -k {input.pack} -Az $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | gzip > {output}
+            vg call -t {threads} -k {input.pack} -Az $RPATHS -s {wildcards.sample} -c {wildcards.minlen} {input.gbz} | bgzip > {output}
             """
 
 rule dv_make_examples:
